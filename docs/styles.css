@@ -1,0 +1,37 @@
+.search-section {
+    width: 50%;
+    height: 80vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.search-set {
+    
+}
+
+.center-pane {
+    display: flex;
+}
+
+.search-results {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.search-result-card {
+    width: 200px;
+    flex-shrink: 0;
+    flex-grow: 0;
+    justify-content: space-around;
+    padding: 10px;
+}
+
+.search-result-card p {
+    text-align: center;
+    font-weight: bold;
+    font-size: large;
+}
+
+.search-result-card img {
+    width: 100%;
+}
