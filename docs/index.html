@@ -102,6 +102,10 @@
             </div>
         </template>
         
+        <template h-template="SearchParameterTemplate">
+            <div h-model="_" h-attribute="templateType h-component {{`templateType ${event.prop} model`}}"></div>
+        </template>
+
         <header>
 
         </header>
@@ -117,7 +121,7 @@
                     </div>
                     <hr/>
                     <div>
-                        <div h-model="search.parameters" h-component="cardName TextSearchTemplate" class="search-set"></div>
+                        <!-- <div h-model="search.parameters" h-component="cardName TextSearchTemplate" class="search-set"></div>
                         <div h-model="search.parameters" h-component="number TextSearchTemplate" class="search-set"></div> 
                         <div h-model="search.parameters" h-component="fullText TextSearchTemplate" class="search-set"></div>
 
@@ -139,7 +143,9 @@
                         <div h-model="search.parameters" h-component="rarity SelectSearchTemplate" class="search-set"></div> 
                         <div h-model="search.parameters" h-component="artist TextSearchTemplate" class="search-set"></div> 
                         <div h-model="search.parameters" h-component="setNumber SelectSearchTemplate" class="search-set"></div>
-                        <div h-model="search.parameters" h-component="setName SelectSearchTemplate" class="search-set"></div>
+                        <div h-model="search.parameters" h-component="setName SelectSearchTemplate" class="search-set"></div> -->
+
+                        <div h-model="search.parameters" h-component="list SearchParameterTemplate"></div>
                     </div>
                     <div>
         
