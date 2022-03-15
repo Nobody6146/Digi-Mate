@@ -1562,10 +1562,10 @@ class HydrateApp
             route: path,
             url: routerContext.url,
             pathname: routerContext.pathname,
-            search: routerContext.search,
-            hash: routerContext.hash,
+            search: decodeURI(routerContext.search),
+            hash: decodeURI(routerContext.hash),
             params: this.#getRouteParams(path, match),
-            query: this.#getQueryParams(routerContext.search),
+            query: this.#getQueryParams(decodeURI(routerContext.search)),
             state: routerContext.state,
         };
     }

@@ -17,6 +17,7 @@ class AppCardDatabase {
 class AppSearch {
     parameters;
     results;
+    query = null;
     constructor() {
         this.parameters = new AppSearchParameters();
         this.results = [];
@@ -57,8 +58,8 @@ class AppSearchParameters {
         this.dp = new NumberSearchParameter("DP", "Any numerical value, e.g. 3");
         this.digimonType = new SelectSearchParameter("Digimon Type", enums.digimonTypes.map(type => new KeyValuePair(type, type)));
         this.number = new TextSearchParameter("Card Number", "Any words in the name, e.g. BT1-041");
-        this.effects = new SelectSearchListParameter("Effects", enums.effects.map(effect => new KeyValuePair(effect.name, effect.name)));
-        this.abilities = new SelectSearchListParameter("Abilities", enums.abilities.map(ability => new KeyValuePair(ability.name, ability.name)));
+        this.effects = new SelectSearchParameter("Effects", enums.effects.map(effect => new KeyValuePair(effect.name, effect.name)));
+        this.abilities = new SelectSearchParameter("Abilities", enums.abilities.map(ability => new KeyValuePair(ability.name, ability.name)));
         this.setName = new SelectSearchParameter("Set Name", enums.setNames.map(name => new KeyValuePair(name, name)));
         this.setNumber = new SelectSearchParameter("Set Number", enums.setNumbers.map(num => new KeyValuePair(num, num)));
     }
@@ -67,12 +68,14 @@ class AppSearchParameters {
 }
 class SearchParameter {
     fieldName;
+    paramName;
     placeholder;
     value;
     availableConditions;
     condition;
     constructor(fieldName, placeHolder, value = "", condition = "equal") {
         this.fieldName = fieldName;
+        this.paramName = this.fieldName.replace(" ", "").toLowerCase();
         this.placeholder = placeHolder;
         this.value = value;
         this.availableConditions = [
@@ -187,12 +190,14 @@ class App {
     }
     static searchCards() {
         let parameters = App.hydrate.state(App.search.parameters);
-        let query = new Function("card", this.#writeSearchQuery(parameters));
+        let textQuery = this.writeSearchQuery(parameters);
+        let query = new Function("card", textQuery);
         let results = [...this.#cards.values()].filter(card => query(card));
         this.search.results = results;
+        this.search.query = textQuery;
         return results;
     }
-    static #writeSearchQuery(parameters) {
+    static writeSearchQuery(parameters) {
         let query = [];
         let mockCard = new DigimonTradingCard();
         let mockEffect = new DigimonTradingCardEffect();
@@ -225,14 +230,18 @@ class App {
             query.push(this.#writeQueryCondition(parameters.digimonType, mockCard => mockCard.digimonType));
         if (parameters.number.value != "")
             query.push(this.#writeQueryCondition(parameters.number, mockCard => mockCard.number));
-        parameters.effects.list.forEach(effect => {
-            if (effect.value != "")
-                query.push(this.#writeQueryListCondition(effect, mockCard => mockCard.effects, mockEffect => mockEffect.name));
-        });
-        parameters.abilities.list.forEach(ability => {
-            if (ability.value != "")
-                query.push(this.#writeQueryListCondition(ability, mockCard => mockCard.abilities, mockAbility => mockAbility.name));
-        });
+        if (parameters.effects.value != "")
+            query.push(this.#writeQueryListCondition(parameters.effects, mockCard => mockCard.effects, mockEffect => mockEffect.name));
+        if (parameters.abilities.value != "")
+            query.push(this.#writeQueryListCondition(parameters.abilities, mockCard => mockCard.abilities, mockAbility => mockAbility.name));
+        // parameters.effects.list.forEach(effect => {
+        //     if(effect.value != "")
+        //         query.push(this.#writeQueryListCondition(effect, mockCard => mockCard.effects, mockEffect => mockEffect.name));
+        // });
+        // parameters.abilities.list.forEach(ability => {
+        //     if(ability.value != "")
+        //         query.push(this.#writeQueryListCondition(ability, mockCard => mockCard.abilities, mockAbility => mockAbility.name));
+        // });
         if (parameters.setName.value != "")
             query.push(this.#writeQueryCondition(parameters.setName, mockCard => mockCard.set.name));
         if (parameters.setNumber.value != "")
@@ -265,7 +274,7 @@ class App {
     static #writeQueryListCondition(parameter, cardFieldFunc, findFieldFunc) {
         let condition = parameter.condition;
         let value = parameter.value;
-        let fieldName = `card.${Util.nameOfField(cardFieldFunc)}.find(x => x.${Util.nameOfField(cardFieldFunc)} == "${value}")`;
+        let fieldName = `card.${Util.nameOfField(cardFieldFunc)}.find(x => x.${Util.nameOfField(findFieldFunc)} == "${value}")`;
         switch (condition) {
             case "equal":
                 return `${fieldName}`;
@@ -275,4 +284,24 @@ class App {
                 return "";
         }
     }
+    static #writeQueryString(parameters) {
+        let params = new Map();
+        parameters.forEach(parameter => {
+            if (parameter.value == "")
+                return;
+            let key = parameter.paramName;
+            let values = params.get(key);
+            if (values == null) {
+                values = [];
+                params.set(key, values);
+            }
+            values.push(`${parameter.condition}:${parameter.value}`);
+        });
+        return [...params.keys()].map(name => `${name}="${params.get(name).join(";")}"`)
+            .join("&");
+    }
+}
+class QueryStringSearchParameter {
+    name;
+    value;
 }
