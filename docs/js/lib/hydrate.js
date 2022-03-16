@@ -439,7 +439,7 @@ class HydrateApp {
         return route;
     }
     //Navigates to the url
-    navigate(url, state) {
+    navigate(url = null, state = null) {
         if (url == null)
             url = window.location.pathname + window.location.search + window.location.hash;
         history.pushState(state, "", url);
@@ -1251,7 +1251,7 @@ class HydrateApp {
                 }
                 let propResult = this.#determinePropValue(event, arg);
                 if (event.type === 'route') {
-                    if (event.modelName !== attributes.model[0].arg1)
+                    if (event.modelName !== undefined && event.modelName !== attributes.model[0].arg1)
                         return;
                 }
                 else {
@@ -1366,10 +1366,17 @@ class HydrateApp {
     #getQueryParams(search) {
         let query = {};
         location.search.substring(1, location.search.length).split("&").forEach(x => {
-            let parts = x.split("=");
-            if (parts[0] === "")
+            let [name, value] = x.split("=");
+            if (name === "")
                 return;
-            query[parts[0]] = parts[1];
+            let variable = query[name];
+            if (variable == null)
+                query[name] = value;
+            else {
+                if (!Array.isArray(variable))
+                    query[name] = [variable];
+                query[name].push(value);
+            }
         });
         return query;
     }
@@ -1395,7 +1402,7 @@ class HydrateApp {
         const routeMatches = this.#routes.map(x => {
             return {
                 route: x,
-                result: this.#matchRoute(x.path, routerContext)
+                result: this.#matchRoute(x.path !== "" ? x.path : ".*", routerContext)
             };
         }).filter(x => x.result != null);
         const resolve = async function () {

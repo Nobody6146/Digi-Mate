@@ -1,0 +1,120 @@
+<template h-template="SearchParameterTemplate">
+    <div h-model="_" h-attribute="templateType h-component {{`templateType ${event.prop} model`}}"></div>
+    <button h-model="_" h-attribute="fieldName onclick {{`removeParameter('${event.modelName}')`}}">Remove</button>
+</template>
+
+<template h-template="ConditionOptionTemplate">
+    <option h-model="_" h-property="value value;key innerHTML" h-function="value refreshSelectElement {{'condition'}}" ></option>
+</template>
+
+<template h-template="ParameterOptionTemplate">
+    <option h-model="_" h-property="value value;key innerHTML" h-function="value refreshSelectElement {{'value'}}" ></option>
+</template>
+
+<template h-template="TextSearchTemplate">
+    <fieldset>
+        <legend h-model="_" h-property="fieldName innerText">Card Name</legend>
+        <select value="" h-model="_"  h-property="condition value" h-input="condition value">
+            <option value="" selected="" disabled="" hidden="">&lt;Pick Type&gt;</option>
+            <optgroup h-model="_" h-component="availableConditions ConditionOptionTemplate"></optgroup>
+        </select>
+        
+        <input h-model="_" h-attribute="placeholder placeholder" h-property="inputType type; value value" h-input="value value"
+            placeholder="Any words in the name, e.g. Agumon" type="text" style="width: 100%; padding: 5px;"/>
+    </fieldset>
+</template>
+
+<template h-template="NumberSearchTemplate">
+    <fieldset>
+        <legend h-model="_" h-property="fieldName innerText">Card Name</legend>
+        <select value="" h-model="_"  h-property="condition value" h-input="condition value">
+            <option value="" selected="" disabled="" hidden="">&lt;Pick Type&gt;</option>
+            <optgroup h-model="_" h-component="availableConditions ConditionOptionTemplate"></optgroup>
+        </select>
+        
+        <input h-model="_" h-attribute="placeholder placeholder" h-property="inputType type; value value" h-input="value value"
+            type="number" style="width: 100%; padding: 5px;"/>
+    </fieldset>
+</template>
+
+<template h-template="SelectSearchTemplate">
+    <fieldset>
+        <legend h-model="_" h-property="fieldName innerText">Card Name</legend>
+        <select value="" h-model="_"  h-property="condition value" h-input="condition value">
+            <option value="" selected="" disabled="" hidden="">&lt;None&gt;</option>
+            <!-- <option value="equal">=</option>
+            <option value="notEqual">!=</option> -->
+            <optgroup h-model="_" h-component="availableConditions ConditionOptionTemplate"></optgroup>
+            <!-- <option h-model="_" h-dispatch="availableConditions bind RefreshSelectScript"></option> -->
+        </select>
+
+        <select value="" h-model="_"  h-property="value value" h-input="value value">
+            <option value="" selected="">&lt;None&gt;</option>
+            <!-- <option value="equal">=</option>
+            <option value="notEqual">!=</option> -->
+            <optgroup h-model="_" h-component="options ParameterOptionTemplate"></optgroup>
+            <!-- <option h-model="_" h-dispatch="availableConditions bind RefreshSelectScript"></option> -->
+        </select>
+    </fieldset>
+</template>
+
+
+<template h-template="AddParameterTemplate">
+    <option h-model="_" h-property="parameterType value;fieldName innerHTML" h-function="value refreshSelectElement {{'addParameterType'}}" ></option>
+</template>
+
+<h2>Search</h2>
+<hr/>
+<div>
+    <button onclick="resetSearch()">Clear</button>
+    <button onclick="searchCards()">Search</button>
+</div>
+<hr/>
+<div>
+    <h3>Add new parameter</h3>
+    <select value="" h-model="search.parameters"  h-property="addParameterType value" h-input="addParameterType value">
+        <option value="" selected="" disabled="" hidden="">&lt;Pick Type&gt;</option>
+        <optgroup h-model="search.parameters" h-component="availableParameters AddParameterTemplate"></optgroup>
+    </select>
+    <button onclick="addParameterType()">+</button>
+</div>
+<hr/>
+<div>
+    <div h-model="search.parameters" h-component="list SearchParameterTemplate"></div>
+</div>
+<div>
+
+</div>
+
+<script h-initialize>
+    (event, req) => {
+        window.resetSearch = function() {
+            App.resetSearchParameters();
+        }
+        window.searchCards = function() {
+            let search = App.hydrate.state(App.search);
+            let results = App.updateSearch(search.parameters.list);
+            window.location.href = `?${encodeURI(results.query)}#cards`;
+            return results;
+        }
+        window.addParameterType = function() {
+            let parameterType = AppSearch.searchableParameters.get(App.search.parameters.addParameterType)
+            if(parameterType != null)
+            {
+                let list = App.hydrate.state(App.search.parameters.list);
+                list.push(AppSearchParameters.copy(parameterType));
+                App.search.parameters.list = list;
+            }
+            App.search.parameters.addParameterType = "";
+        }
+        window.removeParameter = function(modelName) {
+            let parameter = App.hydrate.state(modelName);
+            let list = App.hydrate.state(App.search.parameters.list);
+            let index = list.findIndex(x => x == parameter);
+            console.log(list);
+            console.log(index);
+            list.splice(index, 1);
+            App.search.parameters.list = list;
+        }
+    }
+</script>

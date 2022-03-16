@@ -11,156 +11,21 @@
         <script src="js/app.js"></script>
     </head>
     <body>
-        <template h-template="OptGroupTemplate">
-            <option h-model="_" h-property="value value;key innerHTML" h-function="value refreshSelectElement" ></option>
-        </template>
 
-        <template h-template="TextSearchTemplate">
-            <fieldset>
-                <legend h-model="_" h-property="fieldName innerText">Card Name</legend>
-                <select value="" h-model="_"  h-property="condition value" h-input="condition value">
-                    <option value="" selected="" disabled="" hidden="">&lt;Pick Type&gt;</option>
-                    <!-- <option value="equal">=</option>
-                    <option value="notEqual">!=</option> -->
-                    <optgroup h-model="_" h-component="availableConditions OptGroupTemplate"></optgroup>
-                    <!-- <option h-model="_" h-dispatch="availableConditions bind RefreshSelectScript"></option> -->
-                </select>
-                
-                <input h-model="_" h-attribute="placeholder placeholder" h-property="inputType type; value value" h-input="value value"
-                    placeholder="Any words in the name, e.g. Agumon" type="text" style="width: 100%; padding: 5px;"/>
-            </fieldset>
-            <hr/>
-        </template>
-
-        <template h-template="NumberSearchTemplate">
-            <fieldset>
-                <legend h-model="_" h-property="fieldName innerText">Card Name</legend>
-                <select value="" h-model="_"  h-property="condition value" h-input="condition value">
-                    <option value="" selected="" disabled="" hidden="">&lt;Pick Type&gt;</option>
-                    <!-- <option value="equal">=</option>
-                    <option value="notEqual">!=</option> -->
-                    <optgroup h-model="_" h-component="availableConditions OptGroupTemplate"></optgroup>
-                    <!-- <option h-model="_" h-dispatch="availableConditions bind RefreshSelectScript"></option> -->
-                </select>
-                
-                <input h-model="_" h-attribute="placeholder placeholder" h-property="inputType type; value value" h-input="value value"
-                    type="number" style="width: 100%; padding: 5px;"/>
-            </fieldset>
-            <hr/>
-        </template>
-
-        <template h-template="SelectSearchTemplate">
-            <fieldset>
-                <legend h-model="_" h-property="fieldName innerText">Card Name</legend>
-                <select value="" h-model="_"  h-property="condition value" h-input="condition value">
-                    <option value="" selected="" disabled="" hidden="">&lt;None&gt;</option>
-                    <!-- <option value="equal">=</option>
-                    <option value="notEqual">!=</option> -->
-                    <optgroup h-model="_" h-component="availableConditions OptGroupTemplate"></optgroup>
-                    <!-- <option h-model="_" h-dispatch="availableConditions bind RefreshSelectScript"></option> -->
-                </select>
-
-                <select value="" h-model="_"  h-property="value value" h-input="value value">
-                    <option value="" selected="">&lt;None&gt;</option>
-                    <!-- <option value="equal">=</option>
-                    <option value="notEqual">!=</option> -->
-                    <optgroup h-model="_" h-component="options OptGroupTemplate"></optgroup>
-                    <!-- <option h-model="_" h-dispatch="availableConditions bind RefreshSelectScript"></option> -->
-                </select>
-            </fieldset>
-            <hr/>
-        </template>
-
-        <template h-template="SelectSearchListTemplate">
-            <fieldset>
-                <legend h-model="_" h-property="fieldName innerText">Card Name</legend>
-                <select value="" h-model="_"  h-property="condition value" h-input="condition value">
-                    <option value="" selected="" disabled="" hidden="">&lt;None&gt;</option>
-                    <!-- <option value="equal">=</option>
-                    <option value="notEqual">!=</option> -->
-                    <optgroup h-model="_" h-component="availableConditions OptGroupTemplate"></optgroup>
-                    <!-- <option h-model="_" h-dispatch="availableConditions bind RefreshSelectScript"></option> -->
-                </select>
-
-                <select value="" h-model="_"  h-property="value value" h-input="value value">
-                    <option value="" selected="">&lt;None&gt;</option>
-                    <!-- <option value="equal">=</option>
-                    <option value="notEqual">!=</option> -->
-                    <optgroup h-model="_" h-component="options OptGroupTemplate"></optgroup>
-                    <!-- <option h-model="_" h-dispatch="availableConditions bind RefreshSelectScript"></option> -->
-                </select>
-            </fieldset>
-            <hr/>
-        </template>
-
-        <template h-template="CardSearchResultTemplate">
-            <div class="search-result-card">
-                <p>
-                    <span h-model="_" h-property="name innerText"></span>: <span h-model="_" h-property="number innerText"></span>
-                </p>
-                <img h-model="_" h-property="imageUrl src" />
-            </div>
-        </template>
-        
-        <template h-template="SearchParameterTemplate">
-            <div h-model="_" h-attribute="templateType h-component {{`templateType ${event.prop} model`}}"></div>
-        </template>
 
         <header>
-
+            
         </header>
 
         <main>
             <div class="center-pane">
-                <section class="search-section" style="width: 500px">
-                    <h2>Search</h2>
-                    <hr/>
-                    <div>
-                        <button onclick="App.resetSearchParameters()">Clear</button>
-                        <button onclick="App.searchCards()">Search</button>
-                    </div>
-                    <hr/>
-                    <div>
-                        <!-- <div h-model="search.parameters" h-component="cardName TextSearchTemplate" class="search-set"></div>
-                        <div h-model="search.parameters" h-component="number TextSearchTemplate" class="search-set"></div> 
-                        <div h-model="search.parameters" h-component="fullText TextSearchTemplate" class="search-set"></div>
-
-                        <div h-model="search.parameters" h-component="cardType SelectSearchTemplate" class="search-set"></div>
-                        <div h-model="search.parameters" h-component="color SelectSearchTemplate" class="search-set"></div>
-
-                        <div h-model="search.parameters" h-component="playCost NumberSearchTemplate" class="search-set"></div>
-                        <div h-model="search.parameters" h-component="evolutionCost NumberSearchTemplate" class="search-set"></div>
-
-                        <div h-model="search.parameters" h-component="effects  SelectSearchTemplate prop" class="search-set"></div>
-                        <div h-model="search.parameters" h-component="abilities  SelectSearchTemplate prop" class="search-set"></div>
-
-                        <div h-model="search.parameters" h-component="dp NumberSearchTemplate" class="search-set"></div>
-                        <div h-model="search.parameters" h-component="digimonType SelectSearchTemplate" class="search-set"></div>
-                        <div h-model="search.parameters" h-component="level TextSearchTemplate" class="search-set"></div>  
-                        <div h-model="search.parameters" h-component="form SelectSearchTemplate" class="search-set"></div> 
-                        <div h-model="search.parameters" h-component="attribute SelectSearchTemplate" class="search-set"></div>
-
-                        <div h-model="search.parameters" h-component="rarity SelectSearchTemplate" class="search-set"></div> 
-                        <div h-model="search.parameters" h-component="artist TextSearchTemplate" class="search-set"></div> 
-                        <div h-model="search.parameters" h-component="setNumber SelectSearchTemplate" class="search-set"></div>
-                        <div h-model="search.parameters" h-component="setName SelectSearchTemplate" class="search-set"></div> -->
-
-                        <div h-model="search.parameters" h-component="list SearchParameterTemplate"></div>
-                    </div>
-                    <div>
-        
-                    </div>
+                <section style="width: 100%"
+                    h-model="page" h-component="* /pages/search.html" h-route="#search" h-page="url" h-event="route">
                 </section>
-                <section class="search-section" style="width: 100%">
-                    <br />
-                    <h3 style="text-align: center;">Results</h3>
-                    <hr />
-                    <div h-model="search" h-component="results CardSearchResultTemplate" class="search-results">
-
-                    </div>
+                <section style="width: 100%"
+                    h-model="page" h-component="* /pages/cards.html" h-route="#cards" h-page="url" h-event="route">
                 </section>
             </div>
-            
         </main>
 
         <footer>
@@ -170,12 +35,13 @@
         </footer>
         <script>
             App.start();
-            function refreshSelectElement(event){
+            function refreshSelectElement(event, arg){
                 let hydrate = event.hydrate;
-                let name = hydrate.name(hydrate.parent(hydrate.parent(event.model)));
-                event.target.parentElement.parentElement.value = hydrate.state(name).condition;
+                let value = hydrate.state(hydrate.parent(hydrate.parent(event.model)))[arg];
+                event.target.parentElement.parentElement.value = value;
                 // console.log(event.target.parentElement.parentElement);
             }
+            
         </script>
     </body>
 </html>

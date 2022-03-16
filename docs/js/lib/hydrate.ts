@@ -515,7 +515,7 @@ class HydrateApp
         return route;
     }
     //Navigates to the url
-    navigate(url:string, state: any) {
+    navigate(url:string = null, state: any = null) {
         if(url == null)
             url = window.location.pathname + window.location.search + window.location.hash;
         history.pushState(state, "", url);
@@ -1450,7 +1450,7 @@ class HydrateApp
 
                 if(event.type === 'route')
                 {
-                    if(event.modelName !== attributes.model[0].arg1)
+                    if(event.modelName !== undefined && event.modelName !== attributes.model[0].arg1)
                         return;
                 }
                 else 
@@ -1465,11 +1465,11 @@ class HydrateApp
                 const modifiers = arg.arg3 === undefined ? [] : arg.arg3.split(" ");
                 const appendMode = modifiers.indexOf(this.options.dom.modifiers.append) >= 0;
                 const enumerableMode = modifiers.indexOf(this.options.dom.modifiers.enumerable) >= 0;
-    
+
                 if(event.propName !== undefined && (event.state instanceof Object)
                     && enumerableMode && !event.state.propertyIsEnumerable(event.propName))
                     return false;
-    
+                
                 //Highjack the route event to only send the generic route
                 let propNames = event.type === "route" || propResult.success
                     ? [propResult.propName]
@@ -1580,10 +1580,18 @@ class HydrateApp
     #getQueryParams(search: string): object {
         let query = {};
         location.search.substring(1, location.search.length).split("&").forEach(x => {
-            let parts = x.split("=");
-            if(parts[0] === "")
+            let [name, value] = x.split("=");
+            if(name === "")
                 return;
-            query[parts[0]] = parts[1];
+            let variable = query[name];
+            if(variable == null)
+                query[name] = value;
+            else
+            {
+                if(!Array.isArray(variable))
+                    query[name] = [variable];
+                query[name].push(value);
+            }
         });
         return query;
     }
@@ -1611,7 +1619,7 @@ class HydrateApp
         const routeMatches = this.#routes.map(x => {
             return {
                 route: x,
-                result: this.#matchRoute(x.path, routerContext)
+                result: this.#matchRoute(x.path !== "" ? x.path : ".*", routerContext)
             }
         }).filter(x => x.result != null);
 

@@ -1,0 +1,15 @@
+<template h-template="CardSearchResultTemplate">
+    <div class="search-result-card">
+        <p>
+            <span h-model="_" h-property="name innerText"></span>: <span h-model="_" h-property="number innerText"></span>
+        </p>
+        <img h-model="_" h-property="imageUrl src" />
+    </div>
+</template>
+
+<a href="#search">Back to Search</a>
+
+<br />
+<h3 style="text-align: center;">Results</h3>
+<hr />
+<div h-model="search" h-component="results CardSearchResultTemplate" class="search-results"></div>

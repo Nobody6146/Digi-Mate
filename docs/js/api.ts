@@ -28,6 +28,7 @@ class DigimonTCGAPI
         let apiJson = await apiResponse.text();
         let apiCards = JSON.parse(apiJson.replace(/&lt;/g, "<").replace(/&gt;/g, ">"))
         return apiCards.map(x => this.mapApiToCard(x)); 
+        //return [];
     }
 
     static mapApiToCard(apiCard: DigimonTCGAPICard): DigimonTradingCard {
