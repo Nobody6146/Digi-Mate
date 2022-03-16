@@ -238,21 +238,21 @@ class App {
         };
     }
     static #writeQueryString(searchParameters) {
-        let params = new Map();
+        let params = [];
         searchParameters.forEach(parameter => {
             if (parameter.value == "")
                 return;
-            let key = parameter.parameterType;
-            let values = params.get(key);
-            if (values == null) {
-                values = [];
-                params.set(key, values);
-            }
-            values.push(`${parameter.condition}:${parameter.value}`);
+            params.push(`${parameter.parameterType}=${parameter.condition}:${parameter.value}`);
+            //let key = parameter.parameterType;
+            // let values = params.get(key);
+            // if(values == null)
+            // {
+            //     values = <string[]>[];
+            //     params.set(key, values);
+            // }
+            // values.push(`${parameter.condition}:${parameter.value}`);
         });
-        let queryString = [...params.keys()].map(name => `${name}=${params.get(name).join(";")}`)
-            .join("&");
-        return queryString;
+        return params.join("&");
     }
     static parseQueryString(queryString) {
         let searchParameters = [];
