@@ -42,6 +42,7 @@ class DigimonTCGAPI
         card.playCost = apiCard.play_cost;
         card.evolutionCost = apiCard.evolution_cost;
         card.rarity = apiCard.cardrarity;
+        card.rarityValue = this.parseRarityValue(card.rarity);
         card.artist = apiCard.artist; 
         card.dp = apiCard.dp; 
         card.digimonType = apiCard.digi_type ?? null; 
@@ -58,8 +59,24 @@ class DigimonTCGAPI
         card.fullText = this.parseFulltext(card);
         return card;
     }
+
+    static parseRarityValue(rarity:string):number {
+        switch(rarity)
+        {
+            case "Common":
+                return 1;
+            case "Uncommon":
+                return 2;
+            case "Rare":
+                return 3;
+            case "Super Rare":
+                return 4;
+            default:
+                return 1;
+        }
+    }
     
-    static parseEffects(text):DigimonTradingCardEffect[] {
+    static parseEffects(text:string):DigimonTradingCardEffect[] {
         text = text?.trim() ?? "";
         if(text === "")
             return [];
@@ -74,7 +91,7 @@ class DigimonTCGAPI
         return effects;
     }
 
-    static parseAbilities(text):DigimonTradingCardAbility[] {
+    static parseAbilities(text:string):DigimonTradingCardAbility[] {
         text = text?.trim() ?? "";
         if(text === "")
             return [];
@@ -84,12 +101,12 @@ class DigimonTCGAPI
         {
             let abilityName = lines[i];
             let abilityText = lines[i + 1];
-            let x = abilityName.match(/[0-9]+/, "X")?.[0] ?? 0;
+            let x = abilityName.match(/[0-9]+/)?.[0] ?? "0";
             let regex = new RegExp(x, "g");
             abilities.push({
                 name: abilityName.replace(regex, "X"),
                 text: abilityText.replace(regex, "X"),
-                x: x
+                x: Number.parseInt(x)
             });
         }
         return abilities;
@@ -106,7 +123,7 @@ class DigimonTCGAPI
             let [number, name] = x.split(": ");
             if(printings.find(x => x.number === number) !== undefined)
                 return;
-            printings.push({number: number, name: name});
+            printings.push({number: number, name: name ?? number});
         });
         return printings;
     }

@@ -94,7 +94,7 @@
         window.searchCards = function() {
             let search = App.hydrate.state(App.search);
             let results = App.updateSearch(search.parameters.list);
-            window.location.href = `?${encodeURI(results.query)}#cards`;
+            App.hydrate.navigate(`?${encodeURI(results.query)}#cards`);
             return results;
         }
         window.addParameterType = function() {
@@ -111,8 +111,6 @@
             let parameter = App.hydrate.state(modelName);
             let list = App.hydrate.state(App.search.parameters.list);
             let index = list.findIndex(x => x == parameter);
-            console.log(list);
-            console.log(index);
             list.splice(index, 1);
             App.search.parameters.list = list;
         }

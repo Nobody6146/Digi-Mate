@@ -16,34 +16,36 @@ class HydrateModelKeys
 }
 
 class AppCardDatabase {
-    cards:DigimonTradingCard[];
+    cards:EvaluatedDigimonTradingCard[];
     cardEnums:DigimonTradingCardEnums;
+    cardStats:DigimonTradingCardStats;
 }
 
 class AppCardDatabaseQueryResult {
     query:string;
     filter:Function;
-    results:DigimonTradingCard[];
+    results:EvaluatedDigimonTradingCard[];
 
 }
 
 type SearchParameterConditionType = "equal" | "notEqual" | "lessThan" | "greaterThan" | "lessThanOrEqual" | "greaterThanOrEqual" | "match" | "notMatch";
 type SearchParameterTemplateType = "TextSearchTemplate" | "NumberSearchTemplate" | "SelectSearchTemplate";
-type SearchParameterType = "cardName" | "fullText" | "cardType" | "attribute" | "color" | "form" | "level" | "playCost" | "evolutionCost" | "rarity" | "artist" | "dp" | "digimonType" | "number" | "effect" | "ability" | "setName" | "setNumber";
-type SearchCardFieldFunction = (x:DigimonTradingCard) => any;
-type SearchFindFieldFunction = (x:DigimonTradingCardEffect | DigimonTradingCardAbility) => any;
+type SearchParameterType = "cardName" | "fullText" | "cardType" | "attribute" | "color" | "form" | "level" | "playCost" | "evolutionCost" | "rarity" | "artist" | "dp" | "digimonType" | "number" | "effect" | "ability" | "setName" | "setNumber" | "printingName" | "printingNumber" | "digiScore";
+type SearchCardFieldFunction = (x:EvaluatedDigimonTradingCard) => any;
+type SearchFindFieldFunction = (x:DigimonTradingCardEffect | DigimonTradingCardAbility | DigimonTradingCardSet) => any;
 
 class AppSearch {
     static searchableParameters:Map<SearchParameterType, SearchParameter> = new Map();
     parameters:AppSearchParameters;
-    results:DigimonTradingCard[];
+    results:EvaluatedDigimonTradingCard[];
     query:string = null;
 
     constructor() {
         let enums = <DigimonTradingCardEnums> App.hydrate.state(App.cardDatabase.cardEnums);
-        const mockCard = new DigimonTradingCard();
+        const mockCard = new EvaluatedDigimonTradingCard();
         const mockEffect = new DigimonTradingCardEffect();
         const mockAbility = new DigimonTradingCardAbility();
+        const mockSet = new DigimonTradingCardSet();
 
         let avaliableParameters:SearchParameter[] = [];
         avaliableParameters.push(new TextSearchParameter("cardName", mockCard => mockCard.name, null, "Card Name", "Any words in the name, e.g. Agumon"));
@@ -64,6 +66,10 @@ class AppSearch {
         avaliableParameters.push(new SelectSearchParameter("ability", mockCard => mockCard.abilities, mockAbility => mockAbility.name, "Ability", enums.abilities.map(ability => new KeyValuePair(ability.name, ability.name))));
         avaliableParameters.push(new SelectSearchParameter("setName", mockCard => mockCard.set.name, null, "Set Name", enums.setNames.map(name => new KeyValuePair(name, name))));
         avaliableParameters.push(new SelectSearchParameter("setNumber", mockCard => mockCard.set.number, null, "Set Number", enums.setNumbers.map(num => new KeyValuePair(num, num))));
+        avaliableParameters.push(new SelectSearchParameter("printingName", mockCard => mockCard.printings, mockSet => mockSet.name, "Printing Name", enums.setNames.map(name => new KeyValuePair(name, name))));
+        avaliableParameters.push(new SelectSearchParameter("printingNumber", mockCard => mockCard.printings, x => mockSet.number, "Printing Number", enums.setNumbers.map(num => new KeyValuePair(num, num))));
+        avaliableParameters.push(new NumberSearchParameter("digiScore", mockCard => mockCard.evaluation.digiScore, null, "Digi-Score", "Any numerical value, e.g. 31"));
+        
         AppSearch.searchableParameters.clear();
         avaliableParameters.forEach(type => AppSearch.searchableParameters.set(type.parameterType, type));
 
@@ -183,7 +189,7 @@ function logError(error:Error):void {
 class App
 {
     static #hydrate:HydrateApp;
-    static #cards:Map<string, DigimonTradingCard>;
+    static #cards:Map<string, EvaluatedDigimonTradingCard>;
 
     static get hydrate() {
         return this.#hydrate;
@@ -200,11 +206,8 @@ class App
             if(req.search !== "")
             {
                 let query = req.search.substring(1);
-                console.log(query);
-                console.log(App.search.query);
                 if(App.search.query !== query)
                 {
-                    console.log("refilter");
                     let searchParameters = App.parseQueryString(query);
                     App.search.parameters.list = searchParameters;
                     App.updateSearch(searchParameters);
@@ -231,16 +234,20 @@ class App
         this.resetSearchParameters();
     }
 
-    static async loadDatabase():Promise<DigimonTradingCard[]> {
+    static async loadDatabase():Promise<EvaluatedDigimonTradingCard[]> {
         try
         {
             let cards = await DigimonTCGAPI.getAllCards();
-            let cardEnums = DigimonTradingCardEvaluator.loadCardEnums(cards);
-            this.cardDatabase = {cards, cardEnums};
-            cards.forEach(card => {
+            let evaluationResult = DigimonTradingCardEvaluator.evaluateDatabase(cards);
+            this.cardDatabase = {
+                cards: evaluationResult.evaluatedCards,
+                cardEnums: evaluationResult.cardEnums,
+                cardStats: evaluationResult.cardStats
+            };
+            evaluationResult.evaluatedCards.forEach(card => {
                 App.#cards.set(card.number, card);
             });
-            return cards;
+            return evaluationResult.evaluatedCards;
         }
         catch(error)
         {
@@ -249,7 +256,7 @@ class App
         }
     }
 
-    static get cards():Map<string, DigimonTradingCard> {
+    static get cards():Map<string, EvaluatedDigimonTradingCard> {
         return this.#cards;
     }
 

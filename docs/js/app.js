@@ -13,6 +13,7 @@ class HydrateModelKeys {
 class AppCardDatabase {
     cards;
     cardEnums;
+    cardStats;
 }
 class AppCardDatabaseQueryResult {
     query;
@@ -26,9 +27,10 @@ class AppSearch {
     query = null;
     constructor() {
         let enums = App.hydrate.state(App.cardDatabase.cardEnums);
-        const mockCard = new DigimonTradingCard();
+        const mockCard = new EvaluatedDigimonTradingCard();
         const mockEffect = new DigimonTradingCardEffect();
         const mockAbility = new DigimonTradingCardAbility();
+        const mockSet = new DigimonTradingCardSet();
         let avaliableParameters = [];
         avaliableParameters.push(new TextSearchParameter("cardName", mockCard => mockCard.name, null, "Card Name", "Any words in the name, e.g. Agumon"));
         avaliableParameters.push(new TextSearchParameter("fullText", mockCard => mockCard.fullText, null, "Text", "Any words in the name, e.g. trash, Digimon, etc."));
@@ -48,6 +50,9 @@ class AppSearch {
         avaliableParameters.push(new SelectSearchParameter("ability", mockCard => mockCard.abilities, mockAbility => mockAbility.name, "Ability", enums.abilities.map(ability => new KeyValuePair(ability.name, ability.name))));
         avaliableParameters.push(new SelectSearchParameter("setName", mockCard => mockCard.set.name, null, "Set Name", enums.setNames.map(name => new KeyValuePair(name, name))));
         avaliableParameters.push(new SelectSearchParameter("setNumber", mockCard => mockCard.set.number, null, "Set Number", enums.setNumbers.map(num => new KeyValuePair(num, num))));
+        avaliableParameters.push(new SelectSearchParameter("printingName", mockCard => mockCard.printings, mockSet => mockSet.name, "Printing Name", enums.setNames.map(name => new KeyValuePair(name, name))));
+        avaliableParameters.push(new SelectSearchParameter("printingNumber", mockCard => mockCard.printings, x => mockSet.number, "Printing Number", enums.setNumbers.map(num => new KeyValuePair(num, num))));
+        avaliableParameters.push(new NumberSearchParameter("digiScore", mockCard => mockCard.evaluation.digiScore, null, "Digi-Score", "Any numerical value, e.g. 31"));
         AppSearch.searchableParameters.clear();
         avaliableParameters.forEach(type => AppSearch.searchableParameters.set(type.parameterType, type));
         this.parameters = new AppSearchParameters();
@@ -159,10 +164,7 @@ class App {
         App.hydrate.route("", (req, res) => {
             if (req.search !== "") {
                 let query = req.search.substring(1);
-                console.log(query);
-                console.log(App.search.query);
                 if (App.search.query !== query) {
-                    console.log("refilter");
                     let searchParameters = App.parseQueryString(query);
                     App.search.parameters.list = searchParameters;
                     App.updateSearch(searchParameters);
@@ -189,12 +191,16 @@ class App {
     static async loadDatabase() {
         try {
             let cards = await DigimonTCGAPI.getAllCards();
-            let cardEnums = DigimonTradingCardEvaluator.loadCardEnums(cards);
-            this.cardDatabase = { cards, cardEnums };
-            cards.forEach(card => {
+            let evaluationResult = DigimonTradingCardEvaluator.evaluateDatabase(cards);
+            this.cardDatabase = {
+                cards: evaluationResult.evaluatedCards,
+                cardEnums: evaluationResult.cardEnums,
+                cardStats: evaluationResult.cardStats
+            };
+            evaluationResult.evaluatedCards.forEach(card => {
                 App.#cards.set(card.number, card);
             });
-            return cards;
+            return evaluationResult.evaluatedCards;
         }
         catch (error) {
             logError(error);

@@ -12,7 +12,67 @@ class DigimonTradingCardEnums
     abilities:DigimonTradingCardAbility[] = [];
     sets:DigimonTradingCardSet[] = [];
     setNumbers:string[] = [];
-    setNames:string[] = [];
+    setNames:string[] = [];    
+}
+
+class DigimonTradingCardStats
+{
+    playCost:DigimonStatRange;
+    levels:DigimonStatRange;
+    evolutionCost:DigimonStatRange;
+    dp:DigimonStatRange;
+    rarityValue:DigimonStatRange;
+    numberOfAbilities:DigimonStatRange;
+    numberOfEffects:DigimonStatRange;
+    digiScore:DigimonStatRange;
+
+    constructor() {
+        this.playCost = new DigimonStatRange();
+        this.levels = new DigimonStatRange();
+        this.evolutionCost = new DigimonStatRange();
+        this.dp = new DigimonStatRange();
+        this.rarityValue = new DigimonStatRange();
+        this.numberOfAbilities = new DigimonStatRange();
+        this.numberOfEffects = new DigimonStatRange();
+        this.digiScore = new DigimonStatRange();
+    }
+}
+
+class DigimonTradingCardEvaluation {
+    playCost:number = 0;
+    level:number = 0;
+    evolutionCost:number = 0;
+    dp:number = 0;
+    rarityValue:number = 0;
+    numberOfAbilities:number = 0;
+    numberOfEffects:number = 0;
+    cardType:number = 0;
+
+    digiScore:number = 0;
+}
+
+class DigimonStatRange {
+    min:number = null;
+    max:number = null;
+
+    update(value:number){
+        this.updateMin(value);
+        this.updateMax(value);
+    }
+    updateMin(value:number):number {
+        if(value == null)
+            return this.min;
+        if(this.min == null || value < this.min)
+            this.min = value;
+        return this.min;
+    }
+    updateMax(value:number):number {
+        if(value == null)
+            return this.max;
+        if(this.max == null || value > this.max)
+            this.max = value;
+        return this.max;
+    }
 }
 
 class DigimonTradingCardEffect {
@@ -46,7 +106,8 @@ class DigimonTradingCard
     level:number; 
     playCost:number; 
     evolutionCost:number; 
-    rarity:string; 
+    rarity:string;
+    rarityValue:number;
     artist:string; 
     dp:number; 
     digimonType:string; 
@@ -61,13 +122,19 @@ class DigimonTradingCard
     fullText:string;
 }
 
+class EvaluatedDigimonTradingCard extends DigimonTradingCard
+{
+    evaluation:DigimonTradingCardEvaluation;
+}
+
 type DigimonTradingCardDetail = DigimonTradingCard;
 
 class DigimonTradingCardEvaluator
 {
-    static loadCardEnums(cards:DigimonTradingCard[]): DigimonTradingCardEnums
+    static evaluateDatabase(cards:DigimonTradingCard[])
     {
-        let cardEnums = new DigimonTradingCardEnums();
+        let cardEnums = new DigimonTradingCardEnums(); 
+        let cardStats = new DigimonTradingCardStats();  
         cards.forEach(card => {
             if(cardEnums.types.find(x => x === card.type) === undefined)
                 cardEnums.types.push(card.type);
@@ -91,6 +158,18 @@ class DigimonTradingCardEvaluator
             });
             if(cardEnums.sets.find(x => x.number === card.set.number) === undefined)
                 cardEnums.sets.push(card.set);
+            card.printings.forEach(printing => {
+                if(cardEnums.sets.find(x => x.number === printing.number) === undefined)
+                    cardEnums.sets.push(printing);
+            })
+
+            cardStats.playCost.update(card.playCost);
+            cardStats.levels.update(card.level);
+            cardStats.evolutionCost.update(card.evolutionCost);
+            cardStats.dp.update(card.dp);
+            cardStats.rarityValue.update(card.rarityValue);
+            cardStats.numberOfAbilities.update(card.abilities.length);
+            cardStats.numberOfEffects.update(card.effects.length);
         });
 
         cardEnums.types = cardEnums.types.sort();
@@ -105,6 +184,49 @@ class DigimonTradingCardEvaluator
         cardEnums.setNames = cardEnums.sets.map(x => x.name).sort();
         cardEnums.setNumbers = cardEnums.sets.map(x => x.number);
 
-        return cardEnums;
+        let evaluatedCards:EvaluatedDigimonTradingCard[] = cards.map(card => {
+            return {
+                ...card,
+                evaluation: this.#evaluateCard(card, cardStats)
+            }
+        });
+
+        return {
+            cardEnums,
+            cardStats,
+            evaluatedCards
+        };
+    }
+
+    static #evaluateCard(card:DigimonTradingCard, cardStats:DigimonTradingCardStats):DigimonTradingCardEvaluation
+    {
+        let evaluation = new DigimonTradingCardEvaluation();
+        evaluation.playCost = this.#evaluateStat(card.playCost, cardStats.playCost.max, cardStats.playCost.min);
+        evaluation.level = this.#evaluateStat(card.level, cardStats.levels.min, cardStats.levels.max);
+        evaluation.evolutionCost = this.#evaluateStat(card.evolutionCost, cardStats.evolutionCost.max, cardStats.evolutionCost.min);
+        evaluation.dp = this.#evaluateStat(card.dp, cardStats.dp.min, cardStats.dp.max);
+        evaluation.rarityValue = this.#evaluateStat(card.rarityValue, cardStats.rarityValue.min, cardStats.rarityValue.max);
+        evaluation.numberOfAbilities = this.#evaluateStat(card.abilities.length, cardStats.numberOfAbilities.min, cardStats.numberOfAbilities.max);
+        evaluation.numberOfEffects = this.#evaluateStat(card.effects.length, cardStats.numberOfEffects.min, cardStats.numberOfEffects.max);
+        evaluation.cardType = card.type === "Digimon" ? 0 : 20;
+        evaluation.digiScore = Math.round(evaluation.playCost
+            + evaluation.level
+            + evaluation.evolutionCost 
+            + evaluation.dp 
+            + evaluation.rarityValue 
+            + evaluation.numberOfAbilities 
+            + evaluation.numberOfEffects
+            + evaluation.cardType); 
+        cardStats.digiScore.update(evaluation.digiScore);
+
+        return evaluation;
+    }
+
+    static #evaluateStat(value:number, min:number, max:number)
+    {
+        if(value == null)
+            return 0;
+        let weight = max - min;
+        return (1 - (max - value)/weight) * 10;
     }
 }
