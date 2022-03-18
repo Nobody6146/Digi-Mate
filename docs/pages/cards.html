@@ -1,15 +1,108 @@
+<template h-template="ChooseSearchParameterTemplate">
+    <option h-model="_" h-property="parameterType value;fieldName innerHTML" h-function="value refreshSelectElement {{'sortField'}}" ></option>
+</template>
+
 <template h-template="CardSearchResultTemplate">
     <div class="search-result-card">
-        <p>
-            <span h-model="_" h-property="name innerText"></span>: <span h-model="_" h-property="number innerText"></span>
-        </p>
         <img h-model="_" h-property="imageUrl src" />
+        <p>
+            <span h-model="_" h-property="name innerText"></span>
+            : <span h-model="_" h-property="number innerText"></span>
+        </p>
+        <p>
+            (<span h-model="_" h-property="number innerText GetSortFieldNameScript"></span>
+            : <span h-model="_" h-property="number innerText GetSortFieldCardValueScript"></span>)
+        </p>
     </div>
 </template>
 
-<a href="#search">Back to Search</a>
+<script h-script="GetSortFieldNameScript">
+    () => {
+        let search = App.hydrate.state(App.search);
+        let searchParameter = search.parameters.availableParameters.find(x => x.parameterType === search.sortField);
+        if(searchParameter == null)
+            return "";
+        return searchParameter.fieldName;
+    }
+</script>
+
+<script h-script="GetSortFieldCardValueScript">
+    (event) => {
+        let value = getSortCardValue(event.state);
+        return value;
+    }
+</script>
+
+<nav>
+    <a href="#search">Back to Search</a>
+    <a href="#cheatsheet">Cheat Sheet</a>
+</nav>
 
 <br />
-<h3 style="text-align: center;">Results</h3>
+<h3 style="text-align: center;">
+    <span h-model="search.results" h-property="length innerHTML"></span>
+    Results
+</h3>
+<div>
+    <span>Order by: </span>
+    <select value="" h-model="search"  h-property="sortField value" h-input="sortField value">
+        <option value="" selected="" disabled="" hidden="">&lt;Pick Type&gt;</option>
+        <optgroup h-model="search.parameters" h-component="availableParameters ChooseSearchParameterTemplate"></optgroup>
+    </select>
+    <span> Direction: </span>
+    <select value="" h-model="search"  h-property="sortOrder value" h-input="sortOrder value">
+        <option value="" selected="" disabled="" hidden="">&lt;None&gt;</option>
+        <option value="asc">Asc</option>
+        <option value="desc">Desc</option>
+    </select>
+    <button onclick="sort()">Sort</button>
+</div>
 <hr />
 <div h-model="search" h-component="results CardSearchResultTemplate" class="search-results"></div>
+
+<script h-initialize>
+    (event, req) => {
+        window.getSortCardValue = function(card)
+        {
+            let search = App.hydrate.state(App.search);
+            let searchParameter = search.parameters.availableParameters.find(x => x.parameterType === search.sortField);
+            if(searchParameter == null)
+                return null;
+            let value = searchParameter.fieldFunction(card);
+            if(searchParameter.findFieldFunction == null)
+                return value;
+            return searchParameter.findFieldFunction(value);
+        }
+        window.sort = function() {
+            let search = App.hydrate.state(App.search);
+            if(search.results.length === 0)
+                return;
+            
+            App.hydrate.state(App.search);
+            let searchParameter = search.parameters.availableParameters.find(x => x.parameterType === search.sortField);
+            let getValue = function(card)
+            {
+                let value = searchParameter.fieldFunction(card);
+                if(searchParameter.findFieldFunction == null)
+                    return value;
+                return searchParameter.findFieldFunction(value);
+            }
+
+            let sorted = search.results.sort((x, y) => {
+                let value1 = getSortCardValue(x);
+                let value2 = getSortCardValue(y);
+                if(typeof value1 === "number")
+                    return value1 - value2;
+                if(typeof value1 === "string")
+                    return value1?.localeCompare(value2);
+                return -1;
+            });
+
+            if(search.sortOrder === "desc")
+                sorted = sorted.reverse();
+            
+            App.search.results = sorted;
+        }
+        sort();
+    }
+</script>

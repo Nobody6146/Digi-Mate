@@ -1,6 +1,15 @@
 <template h-template="SearchParameterTemplate">
-    <div h-model="_" h-attribute="templateType h-component {{`templateType ${event.prop} model`}}"></div>
-    <button h-model="_" h-attribute="fieldName onclick {{`removeParameter('${event.modelName}')`}}">Remove</button>
+    <fieldset>
+        <legend h-model="_" h-property="fieldName innerText">Card Name</legend>
+        <select value="" h-model="_"  h-property="condition value" h-input="condition value">
+            <option value="" selected="" disabled="" hidden="">&lt;Pick Type&gt;</option>
+            <optgroup h-model="_" h-component="availableConditions ConditionOptionTemplate"></optgroup>
+        </select>
+    
+        <div h-model="_" h-attribute="templateType h-component {{`templateType ${event.prop} model`}}"></div>
+        
+        <button h-model="_" h-attribute="fieldName onclick {{`removeParameter('${event.modelName}')`}}">Remove</button>
+    </fieldset>
 </template>
 
 <template h-template="ConditionOptionTemplate">
@@ -12,56 +21,32 @@
 </template>
 
 <template h-template="TextSearchTemplate">
-    <fieldset>
-        <legend h-model="_" h-property="fieldName innerText">Card Name</legend>
-        <select value="" h-model="_"  h-property="condition value" h-input="condition value">
-            <option value="" selected="" disabled="" hidden="">&lt;Pick Type&gt;</option>
-            <optgroup h-model="_" h-component="availableConditions ConditionOptionTemplate"></optgroup>
-        </select>
-        
-        <input h-model="_" h-attribute="placeholder placeholder" h-property="inputType type; value value" h-input="value value"
-            placeholder="Any words in the name, e.g. Agumon" type="text" style="width: 100%; padding: 5px;"/>
-    </fieldset>
+    <input h-model="_" h-attribute="placeholder placeholder" h-property="inputType type; value value" h-input="value value"
+    placeholder="Any words in the name, e.g. Agumon" type="text" style="width: 100%; padding: 5px;"/>
 </template>
 
 <template h-template="NumberSearchTemplate">
-    <fieldset>
-        <legend h-model="_" h-property="fieldName innerText">Card Name</legend>
-        <select value="" h-model="_"  h-property="condition value" h-input="condition value">
-            <option value="" selected="" disabled="" hidden="">&lt;Pick Type&gt;</option>
-            <optgroup h-model="_" h-component="availableConditions ConditionOptionTemplate"></optgroup>
-        </select>
-        
-        <input h-model="_" h-attribute="placeholder placeholder" h-property="inputType type; value value" h-input="value value"
-            type="number" style="width: 100%; padding: 5px;"/>
-    </fieldset>
+    <input h-model="_" h-attribute="placeholder placeholder" h-property="inputType type; value value" h-input="value value"
+        type="number" style="width: 100%; padding: 5px;"/>
 </template>
 
 <template h-template="SelectSearchTemplate">
-    <fieldset>
-        <legend h-model="_" h-property="fieldName innerText">Card Name</legend>
-        <select value="" h-model="_"  h-property="condition value" h-input="condition value">
-            <option value="" selected="" disabled="" hidden="">&lt;None&gt;</option>
-            <!-- <option value="equal">=</option>
-            <option value="notEqual">!=</option> -->
-            <optgroup h-model="_" h-component="availableConditions ConditionOptionTemplate"></optgroup>
-            <!-- <option h-model="_" h-dispatch="availableConditions bind RefreshSelectScript"></option> -->
-        </select>
-
-        <select value="" h-model="_"  h-property="value value" h-input="value value">
-            <option value="" selected="">&lt;None&gt;</option>
-            <!-- <option value="equal">=</option>
-            <option value="notEqual">!=</option> -->
-            <optgroup h-model="_" h-component="options ParameterOptionTemplate"></optgroup>
-            <!-- <option h-model="_" h-dispatch="availableConditions bind RefreshSelectScript"></option> -->
-        </select>
-    </fieldset>
+    <select value="" h-model="_"  h-property="value value" h-input="value value">
+        <option value="" selected="">&lt;None&gt;</option>
+        <optgroup h-model="_" h-component="options ParameterOptionTemplate"></optgroup>
+    </select>
 </template>
 
 
 <template h-template="AddParameterTemplate">
     <option h-model="_" h-property="parameterType value;fieldName innerHTML" h-function="value refreshSelectElement {{'addParameterType'}}" ></option>
 </template>
+
+<div>
+    <nav>
+        <a href="#cheatsheet">Cheat Sheet</a>
+    </nav>
+</div>
 
 <h2>Search</h2>
 <hr/>

@@ -30,7 +30,7 @@ class AppCardDatabaseQueryResult {
 
 type SearchParameterConditionType = "equal" | "notEqual" | "lessThan" | "greaterThan" | "lessThanOrEqual" | "greaterThanOrEqual" | "match" | "notMatch";
 type SearchParameterTemplateType = "TextSearchTemplate" | "NumberSearchTemplate" | "SelectSearchTemplate";
-type SearchParameterType = "cardName" | "fullText" | "cardType" | "attribute" | "color" | "form" | "level" | "playCost" | "evolutionCost" | "rarity" | "artist" | "dp" | "digimonType" | "number" | "effect" | "ability" | "setName" | "setNumber" | "printingName" | "printingNumber" | "digiScore";
+type SearchParameterType = "cardName" | "fullText" | "cardType" | "attribute" | "color" | "form" | "level" | "playCost" | "evolutionCost" | "rarity" | "artist" | "dp" | "digimonType" | "number" | "effect" | "ability" | "setName" | "setNumber" | "printingName" | "printingNumber" | "digiScore" | "evalPlay" | "evalEvolve" | "evalDp" | "evalEffects" | "evalAbilities" | "evalLevel" | "evalRarity";
 type SearchCardFieldFunction = (x:EvaluatedDigimonTradingCard) => any;
 type SearchFindFieldFunction = (x:DigimonTradingCardEffect | DigimonTradingCardAbility | DigimonTradingCardSet) => any;
 
@@ -38,6 +38,8 @@ class AppSearch {
     static searchableParameters:Map<SearchParameterType, SearchParameter> = new Map();
     parameters:AppSearchParameters;
     results:EvaluatedDigimonTradingCard[];
+    sortField:SearchParameterType;
+    sortOrder:string;
     query:string = null;
 
     constructor() {
@@ -69,12 +71,21 @@ class AppSearch {
         avaliableParameters.push(new SelectSearchParameter("printingName", mockCard => mockCard.printings, mockSet => mockSet.name, "Printing Name", enums.setNames.map(name => new KeyValuePair(name, name))));
         avaliableParameters.push(new SelectSearchParameter("printingNumber", mockCard => mockCard.printings, x => mockSet.number, "Printing Number", enums.setNumbers.map(num => new KeyValuePair(num, num))));
         avaliableParameters.push(new NumberSearchParameter("digiScore", mockCard => mockCard.evaluation.digiScore, null, "Digi-Score", "Any numerical value, e.g. 31"));
+        avaliableParameters.push(new NumberSearchParameter("evalAbilities", mockCard => mockCard.evaluation.numberOfAbilities, null, "Evaluation of Abilities", "Any numerical value, e.g. 3"));
+        avaliableParameters.push(new NumberSearchParameter("evalDp", mockCard => mockCard.evaluation.dp, null, "Evaluation of DP", "Any numerical value, e.g. 3"));
+        avaliableParameters.push(new NumberSearchParameter("evalEffects", mockCard => mockCard.evaluation.numberOfEffects, null, "Evaluation of Effects", "Any numerical value, e.g. 3"));
+        avaliableParameters.push(new NumberSearchParameter("evalEvolve", mockCard => mockCard.evaluation.evolutionCost, null, "Evaluation of Evolution", "Any numerical value, e.g. 3"));
+        avaliableParameters.push(new NumberSearchParameter("evalLevel", mockCard => mockCard.evaluation.level, null, "Evaluation of Level", "Any numerical value, e.g. 3"));
+        avaliableParameters.push(new NumberSearchParameter("evalPlay", mockCard => mockCard.evaluation.playCost, null, "Evaluation of Cost", "Any numerical value, e.g. 3"));
+        avaliableParameters.push(new NumberSearchParameter("evalRarity", mockCard => mockCard.evaluation.rarityValue, null, "Evaluation of Rarity", "Any numerical value, e.g. 3"));
         
         AppSearch.searchableParameters.clear();
         avaliableParameters.forEach(type => AppSearch.searchableParameters.set(type.parameterType, type));
 
         this.parameters = new AppSearchParameters();
         this.results = [];
+        this.sortField = "cardName";
+        this.sortOrder = "asc";
     }
 }
 
@@ -218,7 +229,13 @@ class App
         App.hydrate.route("#search", (req, res) => {
             res.resolve();
         });
+        App.hydrate.route("#card", (req, res) => {
+            res.resolve();
+        });
         App.hydrate.route("#cards", (req, res) => {
+            res.resolve();
+        });
+        App.hydrate.route("#cheatsheet", (req, res) => {
             res.resolve();
         });
         App.hydrate.route("", (req, res) => {

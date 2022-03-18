@@ -1,0 +1,90 @@
+<template h-template="StatDisplayTemplate">
+    <div style="display: flex; justify-content: space-between;">
+        <div style="padding:4px;">
+            Min: <span h-model="_" h-property="min innerHTML"></span>
+        </div>
+        <div style="padding:4px;">
+            Max: <span h-model="_" h-property="max innerHTML"></span>
+        </div>
+        <div style="padding:4px;">
+            Average: <span h-model="_" h-property="average innerHTML {{event.prop?.toFixed(2)}}"></span>
+        </div>
+    </div>
+</template>
+
+<template h-template="AbilitiesTemplate">
+    <tr>
+        <td style="padding: 2px; border: 1px solid; border-collapse: collapse; box-sizing: border-box;" h-model="_" h-property="name innerHTML"></td>
+        <td style="padding: 2px; border: 1px solid; border-collapse: collapse; box-sizing: border-box;" h-model="_" h-property="x innerHTML {{ event.prop != 0 ? `Max X Value: ${event.prop}` : ''}}"></td>
+        <td style="padding: 2px; border: 1px solid; border-collapse: collapse; box-sizing: border-box;" h-model="_" h-property="text innerHTML"></td>
+    </tr>
+</template>
+
+<nav>
+    <a href="#search">Back to Search</a>
+</nav>
+
+<br>
+<h3>
+    Total Cards: 
+    <span h-model="cardDatabase.cards" h-property="length innerHTML"></span>
+</h3>
+<br>
+
+<h4>Card Stats</h4>
+Max score per stat: 10
+<table>
+    <tbody>
+        <tr>
+            <td>Digi-Score</td>   
+            <td>
+                <div h-model="cardDatabase.cardStats" h-component="digiScore StatDisplayTemplate"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>Play Cost</td>   
+            <td>
+                <div h-model="cardDatabase.cardStats" h-component="playCost StatDisplayTemplate"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>Evolution Cost</td>   
+            <td>
+                <div h-model="cardDatabase.cardStats" h-component="evolutionCost StatDisplayTemplate"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>DP</td>   
+            <td>
+                <div h-model="cardDatabase.cardStats" h-component="dp StatDisplayTemplate"></div>
+            </td>
+        </tr>
+        <tr>
+            <td># of Effects</td>   
+            <td>
+                <div h-model="cardDatabase.cardStats" h-component="numberOfEffects StatDisplayTemplate"></div>
+            </td>
+        </tr>
+        <tr>
+            <td># of Abilities</td>   
+            <td>
+                <div h-model="cardDatabase.cardStats" h-component="numberOfAbilities StatDisplayTemplate"></div>
+            </td>
+        </tr>
+        <tr>
+            <td>Digimon Level</td>   
+            <td>
+                <div h-model="cardDatabase.cardStats" h-component="levels StatDisplayTemplate"></div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<br>
+
+<h4>Abilities</h4>
+
+<table style="border-collapse: collapse;">
+    <tbody h-model="cardDatabase.cardEnums" h-component="abilities AbilitiesTemplate">
+    </tbody>
+</table>

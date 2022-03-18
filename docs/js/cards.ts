@@ -54,19 +54,32 @@ class DigimonTradingCardEvaluation {
 class DigimonStatRange {
     min:number = null;
     max:number = null;
+    average:number = null;
+    #sum:number = null;
+    #records:number;
 
     update(value:number){
-        this.updateMin(value);
-        this.updateMax(value);
-    }
-    updateMin(value:number):number {
         if(value == null)
-            return this.min;
+            return;
+
+        if(this.#sum === null)
+        {
+            this.#sum = 0;
+            this.#records = 0;
+        }
+        this.#sum += value;
+        this.#records += 1;
+        this.average = this.#sum/this.#records;
+        this.#updateMin(value);
+        this.#updateMax(value);
+
+    }
+    #updateMin(value:number):number {
         if(this.min == null || value < this.min)
             this.min = value;
         return this.min;
     }
-    updateMax(value:number):number {
+    #updateMax(value:number):number {
         if(value == null)
             return this.max;
         if(this.max == null || value > this.max)
@@ -153,8 +166,11 @@ class DigimonTradingCardEvaluator
                     cardEnums.effects.push(effect);
             });
             card.abilities.forEach(ability => {
-                if(cardEnums.abilities.find(x => x.name === ability.name) === undefined)
+                let result = cardEnums.abilities.find(x => x.name === ability.name);
+                if(result === undefined)
                     cardEnums.abilities.push(ability);
+                else if(result.x < ability.x)
+                    result.x = ability.x;
             });
             if(cardEnums.sets.find(x => x.number === card.set.number) === undefined)
                 cardEnums.sets.push(card.set);
@@ -208,7 +224,7 @@ class DigimonTradingCardEvaluator
         evaluation.rarityValue = this.#evaluateStat(card.rarityValue, cardStats.rarityValue.min, cardStats.rarityValue.max);
         evaluation.numberOfAbilities = this.#evaluateStat(card.abilities.length, cardStats.numberOfAbilities.min, cardStats.numberOfAbilities.max);
         evaluation.numberOfEffects = this.#evaluateStat(card.effects.length, cardStats.numberOfEffects.min, cardStats.numberOfEffects.max);
-        evaluation.cardType = card.type === "Digimon" ? 0 : 20;
+        evaluation.cardType = card.type === "Digimon" ? 0 : card.type === "Digi-Egg" ? 20 : 15;
         evaluation.digiScore = Math.round(evaluation.playCost
             + evaluation.level
             + evaluation.evolutionCost 
