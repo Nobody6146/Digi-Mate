@@ -20,8 +20,17 @@
     </tr>
 </template>
 
+<template h-template="RecommendationsTemplate">
+    <tr>
+        <td style="padding: 2px; border: 1px solid; border-collapse: collapse; box-sizing: border-box;" h-model="_" h-property="name innerHTML"></td>
+        <td style="padding: 2px; border: 1px solid; border-collapse: collapse; box-sizing: border-box;" h-model="_" h-property="min innerHTML"></td>
+        <td style="padding: 2px; border: 1px solid; border-collapse: collapse; box-sizing: border-box;" h-model="_" h-property="max innerHTML"></td>
+    </tr>
+</template>
+
 <nav>
     <a href="#search">Back to Search</a>
+    <a href="index.html#deck">Create Deck</a>
 </nav>
 
 <br>
@@ -54,6 +63,12 @@ Max score per stat: 10
             </td>
         </tr>
         <tr>
+            <td>Average Memory Cost (Play/Evolution)</td>   
+            <td>
+                <div h-model="cardDatabase.cardStats" h-component="averageMemory StatDisplayTemplate"></div>
+            </td>
+        </tr>
+        <tr>
             <td>DP</td>   
             <td>
                 <div h-model="cardDatabase.cardStats" h-component="dp StatDisplayTemplate"></div>
@@ -82,9 +97,41 @@ Max score per stat: 10
 
 <br>
 
+<h4>Deck Recommendations</h4>
+
+<table style="border-collapse: collapse;">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Min</th>
+            <th>Max</th>
+        </tr>
+    </thead>
+    <tbody h-model="cheatsheet" h-component="recommendations RecommendationsTemplate">
+    </tbody>
+</table>
+
+<br>
+
 <h4>Abilities</h4>
 
 <table style="border-collapse: collapse;">
     <tbody h-model="cardDatabase.cardEnums" h-component="abilities AbilitiesTemplate">
     </tbody>
 </table>
+
+<script h-model="cheatsheet" h-initialize>
+    (event, req) => {
+        let model = event.hydrate.bind("cheatsheet", {});
+        model.recommendations = [
+            { name: "Eggs", min: 0, max: 4 },
+            { name: "Level 3", min: 12, max: 14 },
+            { name: "Level 4", min: 10, max: 12 },
+            { name: "Level 5", min: 8, max: 10 },
+            { name: "Level 6", min: 6, max: 8 },
+            { name: "Level 7", min: 0, max: 3 },
+            { name: "Tamers", min: 4, max: 8 },
+            { name: "Options", min: 4, max: 8 }
+        ]
+    }
+</script>

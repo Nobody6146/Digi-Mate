@@ -12,6 +12,8 @@ class DigimonTradingCardEnums {
     sets = [];
     setNumbers = [];
     setNames = [];
+    legalities = [];
+    copiesAllowed = [];
 }
 class DigimonTradingCardStats {
     playCost;
@@ -21,6 +23,7 @@ class DigimonTradingCardStats {
     rarityValue;
     numberOfAbilities;
     numberOfEffects;
+    averageMemory;
     digiScore;
     constructor() {
         this.playCost = new DigimonStatRange();
@@ -30,6 +33,7 @@ class DigimonTradingCardStats {
         this.rarityValue = new DigimonStatRange();
         this.numberOfAbilities = new DigimonStatRange();
         this.numberOfEffects = new DigimonStatRange();
+        this.averageMemory = new DigimonStatRange();
         this.digiScore = new DigimonStatRange();
     }
 }
@@ -116,6 +120,8 @@ class DigimonTradingCard {
     printings;
     imageUrl;
     fullText;
+    legality;
+    copiesAllowed;
 }
 class EvaluatedDigimonTradingCard extends DigimonTradingCard {
     evaluation;
@@ -154,6 +160,10 @@ class DigimonTradingCardEvaluator {
                 if (cardEnums.sets.find(x => x.number === printing.number) === undefined)
                     cardEnums.sets.push(printing);
             });
+            if (cardEnums.legalities.find(x => x === card.legality) === undefined)
+                cardEnums.legalities.push(card.legality);
+            if (cardEnums.copiesAllowed.find(x => x === card.copiesAllowed) === undefined)
+                cardEnums.copiesAllowed.push(card.copiesAllowed);
             cardStats.playCost.update(card.playCost);
             cardStats.levels.update(card.level);
             cardStats.evolutionCost.update(card.evolutionCost);
@@ -161,6 +171,8 @@ class DigimonTradingCardEvaluator {
             cardStats.rarityValue.update(card.rarityValue);
             cardStats.numberOfAbilities.update(card.abilities.length);
             cardStats.numberOfEffects.update(card.effects.length);
+            cardStats.averageMemory.update(card.playCost);
+            cardStats.averageMemory.update(card.evolutionCost);
         });
         cardEnums.types = cardEnums.types.sort();
         cardEnums.colors = cardEnums.colors.sort();

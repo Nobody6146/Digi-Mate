@@ -6,6 +6,7 @@
         <link rel="stylesheet" href="styles.css">
         <script src="js/lib/util.js"></script>
         <script src="js/cards.js"></script>
+        <script src="js/deck.js"></script>
         <script src="js/api.js"></script>
         <script src="js/lib/hydrate.js"></script>
         <script src="js/app.js"></script>
@@ -29,7 +30,10 @@
                     h-model="page" h-component="* pages/cards.html" h-route="#cards" h-page="url" h-event="route">
                 </section>
                 <section style="width: 100%"
-                    h-model="page" h-component="* pages/cheatsheet.html" h-route="#cheatsheet" h-page="url" h-event="route">
+                    h-model="cheatsheet" h-component="* pages/cheatsheet.html" h-route="#cheatsheet" h-page="url" h-event="route">
+                </section>
+                <section style="width: 100%"
+                    h-model="deck" h-component="* pages/deck.html" h-route="#deck" h-page="url" h-event="route">
                 </section>
             </div>
         </main>

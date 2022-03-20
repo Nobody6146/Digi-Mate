@@ -52,6 +52,9 @@ class DigimonTCGAPI {
         card.printings = this.parsePrintings(apiCard.card_sets);
         card.imageUrl = apiCard.image_url;
         card.fullText = this.parseFulltext(card);
+        let restrictions = this.parseRestrictions(card);
+        card.legality = restrictions.legality;
+        card.copiesAllowed = restrictions.copies;
         return card;
     }
     static parseRarityValue(rarity) {
@@ -123,5 +126,44 @@ class DigimonTCGAPI {
             lines.push(x?.toString() ?? "");
         });
         return lines.join("\n");
+    }
+    static parseRestrictions(card) {
+        let copies = 4;
+        //For the cards that allow up to 50 copies: "BT6-085" case "EX2-046"
+        //Incase this happens more often, we'll hard code a check
+        let copiesChangeResult = card.primaryText.match("You can include up to ([0-9]+) copies");
+        if (copiesChangeResult != null) {
+            let parsedCopies = Number.parseInt(copiesChangeResult[1]);
+            if (parsedCopies !== NaN)
+                copies = parsedCopies;
+        }
+        switch (card.number) {
+            case "BT5-109":
+                return {
+                    legality: "banned",
+                    copies: 0
+                };
+            case "BT2-047":
+            case "BT3-103":
+            case "BT6-100":
+            case "EX1-068":
+            case "BT6-015":
+            case "BT7-072":
+                return {
+                    legality: "restricted",
+                    copies: 1
+                };
+            // case "BT6-085":
+            // case "EX2-046":
+            //     return {
+            //         legality: "legal",
+            //         copies: copies
+            //     }
+            default:
+                return {
+                    legality: "legal",
+                    copies: copies
+                };
+        }
     }
 }

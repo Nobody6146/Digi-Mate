@@ -13,6 +13,7 @@ class HydrateModelKeys
 {
     static cardDatabase = "cardDatabase";
     static search = "search";
+    static deck = "deck";
 }
 
 class AppCardDatabase {
@@ -30,7 +31,10 @@ class AppCardDatabaseQueryResult {
 
 type SearchParameterConditionType = "equal" | "notEqual" | "lessThan" | "greaterThan" | "lessThanOrEqual" | "greaterThanOrEqual" | "match" | "notMatch";
 type SearchParameterTemplateType = "TextSearchTemplate" | "NumberSearchTemplate" | "SelectSearchTemplate";
-type SearchParameterType = "cardName" | "fullText" | "cardType" | "attribute" | "color" | "form" | "level" | "playCost" | "evolutionCost" | "rarity" | "artist" | "dp" | "digimonType" | "number" | "effect" | "ability" | "setName" | "setNumber" | "printingName" | "printingNumber" | "digiScore" | "evalPlay" | "evalEvolve" | "evalDp" | "evalEffects" | "evalAbilities" | "evalLevel" | "evalRarity";
+type SearchParameterType = "cardName" | "fullText" | "cardType" | "attribute" | "color" | "form" | "level" | "playCost"
+    | "evolutionCost" | "rarity" | "artist" | "dp" | "digimonType" | "number" | "effect" | "ability" | "setName"
+    | "setNumber" | "printingName" | "printingNumber" | "legality" | "copiesAllowed" |  "digiScore" | "evalPlay" | "evalEvolve" 
+    | "evalDp" | "evalEffects" | "evalAbilities" | "evalLevel" | "evalRarity";
 type SearchCardFieldFunction = (x:EvaluatedDigimonTradingCard) => any;
 type SearchFindFieldFunction = (x:DigimonTradingCardEffect | DigimonTradingCardAbility | DigimonTradingCardSet) => any;
 
@@ -70,6 +74,8 @@ class AppSearch {
         avaliableParameters.push(new SelectSearchParameter("setNumber", mockCard => mockCard.set.number, null, "Set Number", enums.setNumbers.map(num => new KeyValuePair(num, num))));
         avaliableParameters.push(new SelectSearchParameter("printingName", mockCard => mockCard.printings, mockSet => mockSet.name, "Printing Name", enums.setNames.map(name => new KeyValuePair(name, name))));
         avaliableParameters.push(new SelectSearchParameter("printingNumber", mockCard => mockCard.printings, x => mockSet.number, "Printing Number", enums.setNumbers.map(num => new KeyValuePair(num, num))));
+        avaliableParameters.push(new SelectSearchParameter("legality", mockCard => mockCard.legality, null, "Card Legality", enums.legalities.map(legality => new KeyValuePair(legality, legality))));
+        avaliableParameters.push(new NumberSearchParameter("copiesAllowed", mockCard => mockCard.copiesAllowed, null, "# of Copies Allowed", "Any numerical value, e.g. 3"));
         avaliableParameters.push(new NumberSearchParameter("digiScore", mockCard => mockCard.evaluation.digiScore, null, "Digi-Score", "Any numerical value, e.g. 31"));
         avaliableParameters.push(new NumberSearchParameter("evalAbilities", mockCard => mockCard.evaluation.numberOfAbilities, null, "Evaluation of Abilities", "Any numerical value, e.g. 3"));
         avaliableParameters.push(new NumberSearchParameter("evalDp", mockCard => mockCard.evaluation.dp, null, "Evaluation of DP", "Any numerical value, e.g. 3"));
@@ -192,6 +198,24 @@ class SelectSearchParameter extends SearchParameter {
     }
 }
 
+class AppDeck {
+    name:string;
+    list:DigimonTradingCardDeck;
+    deckParameters:DeckParameter[];
+
+    constructor() {
+        this.name = "New Deck";
+        this.list = new DigimonTradingCardDeck();
+        this.deckParameters = [];
+    }
+}
+
+class DeckParameter {
+    card:EvaluatedDigimonTradingCard;
+    deckPartType:DigimonTradingCardDeckPartType;
+    count:number;
+}
+
 function logError(error:Error):void {
     console.error(error);
     alert(error.message);
@@ -238,6 +262,9 @@ class App
         App.hydrate.route("#cheatsheet", (req, res) => {
             res.resolve();
         });
+        App.hydrate.route("#deck", (req, res) => {
+            res.resolve();
+        });
         App.hydrate.route("", (req, res) => {
             //Page not found
             res.hydrate.navigate("#search");
@@ -249,6 +276,7 @@ class App
 
     static initializeUi():void {
         this.resetSearchParameters();
+        this.resetDeckParameters();
     }
 
     static async loadDatabase():Promise<EvaluatedDigimonTradingCard[]> {
@@ -291,8 +319,19 @@ class App
         this.#hydrate.bind(HydrateModelKeys.search, search);
     }
 
+    static get deck():AppDeck {
+        return this.#hydrate.model(HydrateModelKeys.deck);
+    }
+    static set deck(deck:AppDeck) {
+        this.#hydrate.bind(HydrateModelKeys.deck, deck);
+    }
+
     static resetSearchParameters():void {
         this.search = new AppSearch();
+    }
+
+    static resetDeckParameters():void {
+        this.deck = new AppDeck();
     }
 
     static updateSearch(searchParameters:SearchParameter[]):AppCardDatabaseQueryResult {
@@ -396,5 +435,32 @@ class App
             default:
                 return "";
         }
+    }
+
+    static updateDeck(name:string, parameters:DeckParameter[]):DigimonTradingCardDeck {
+        let deck = this.loadDeck(parameters);
+        App.deck.deckParameters = parameters;
+        App.deck.name = name;
+        App.deck.list = deck;
+        return deck;
+    }
+
+    static loadDeck(parameters:DeckParameter[]):DigimonTradingCardDeck {
+        let deck = new DigimonTradingCardDeck();
+        parameters.forEach(parameter => {
+            switch(parameter.deckPartType)
+            {
+                case "egg":
+                    deck.eggDeck.add(parameter.card, parameter.count);
+                    break;
+                case "main":
+                    deck.mainDeck.add(parameter.card, parameter.count);
+                    break;
+                case "side":
+                    deck.sideDeck.add(parameter.card, parameter.count);
+                    break;
+            }
+        });
+        return deck;
     }
 }
