@@ -201,19 +201,46 @@ class SelectSearchParameter extends SearchParameter {
 class AppDeck {
     name:string;
     list:DigimonTradingCardDeck;
-    deckParameters:DeckParameter[];
+    parameters:DeckParameter[];
 
     constructor() {
         this.name = "New Deck";
         this.list = new DigimonTradingCardDeck();
-        this.deckParameters = [];
+        this.parameters = [
+            new DeckParameter("egg"),
+            new DeckParameter("main"),
+            new DeckParameter("side")
+        ];
     }
 }
 
 class DeckParameter {
-    card:EvaluatedDigimonTradingCard;
+    text:string;
     deckPartType:DigimonTradingCardDeckPartType;
-    count:number;
+    name:string;
+
+    constructor(type:DigimonTradingCardDeckPartType, text:string = "")
+    {
+        this.deckPartType = type;
+        switch(this.deckPartType)
+        {
+            case "egg":
+                this.name = "Egg Deck";
+                break;
+            case "main":
+                this.name = "Main Deck";
+                break;
+            case "side":
+                this.name = "Side Deck";
+                break;
+        }
+        this.text = text;
+    }
+}
+
+class DeckParameterCard {
+    cardNumber:string;
+    copies:number;
 }
 
 function logError(error:Error):void {
@@ -237,36 +264,27 @@ class App
         await this.loadDatabase();
         this.initializeUi();
 
-        App.hydrate.route("", (req, res) => {
-            if(req.search !== "")
-            {
-                let query = req.search.substring(1);
-                if(App.search.query !== query)
-                {
-                    let searchParameters = App.parseQueryString(query);
-                    App.search.parameters.list = searchParameters;
-                    App.updateSearch(searchParameters);
-                }                
-            }
-            res.continue();
-        });
         App.hydrate.route("#search", (req, res) => {
+            this.handleSearchQuery(req);
             res.resolve();
         });
         App.hydrate.route("#card", (req, res) => {
             res.resolve();
         });
         App.hydrate.route("#cards", (req, res) => {
+            this.handleSearchQuery(req);
             res.resolve();
         });
         App.hydrate.route("#cheatsheet", (req, res) => {
             res.resolve();
         });
         App.hydrate.route("#deck", (req, res) => {
+            this.handleDeckQuery(req);
             res.resolve();
         });
         App.hydrate.route("", (req, res) => {
             //Page not found
+            this.handleSearchQuery(req);
             res.hydrate.navigate("#search");
             res.resolve();
         });
@@ -330,8 +348,17 @@ class App
         this.search = new AppSearch();
     }
 
-    static resetDeckParameters():void {
-        this.deck = new AppDeck();
+    static handleSearchQuery(request:HydrateRouteRequest):void {
+        if(request.search !== "")
+        {
+            let query = request.search.substring(1);
+            if(App.search.query !== query)
+            {
+                let searchParameters = App.parseSearchQueryString(query);
+                App.search.parameters.list = searchParameters;
+                App.updateSearch(searchParameters);
+            }                
+        }
     }
 
     static updateSearch(searchParameters:SearchParameter[]):AppCardDatabaseQueryResult {
@@ -343,7 +370,7 @@ class App
 
     static queryCardDatabase(searchParameters:SearchParameter[]):AppCardDatabaseQueryResult {
         searchParameters = searchParameters.filter(x => x.value !== "");
-        let query = this.#writeQueryString(searchParameters);
+        let query = this.#writeSearchQueryString(searchParameters);
         let filterExpression = this.#generateCardFilterExpression(searchParameters);
         let filter = new Function("card", `return ${filterExpression};`);
         let results = [...this.#cards.values()].filter(card => filter(card));
@@ -354,7 +381,7 @@ class App
         };
     }
     
-    static #writeQueryString(searchParameters:SearchParameter[]):string
+    static #writeSearchQueryString(searchParameters:SearchParameter[]):string
     {
         let params:string[] = [];
         searchParameters.forEach(parameter => {
@@ -373,7 +400,7 @@ class App
         return params.join("&");
     }
 
-    static parseQueryString(queryString:string):SearchParameter[] {
+    static parseSearchQueryString(queryString:string):SearchParameter[] {
         let searchParameters:SearchParameter[] = [];
         if(queryString.startsWith("?"))
             queryString = queryString.substring(1);
@@ -393,11 +420,11 @@ class App
 
     static #generateCardFilterExpression(searchParameters:SearchParameter[]):string {
         return searchParameters
-            .map(parameter => this.#writeParameterExpression(parameter))
+            .map(parameter => this.#writeSearchParameterExpression(parameter))
             .join("&&");
     }
 
-    static #writeParameterExpression(parameter:SearchParameter):string
+    static #writeSearchParameterExpression(parameter:SearchParameter):string
     {
         let value = parameter.value;
 
@@ -437,30 +464,115 @@ class App
         }
     }
 
-    static updateDeck(name:string, parameters:DeckParameter[]):DigimonTradingCardDeck {
-        let deck = this.loadDeck(parameters);
-        App.deck.deckParameters = parameters;
-        App.deck.name = name;
-        App.deck.list = deck;
-        return deck;
+    static resetDeckParameters():void {
+        this.deck = new AppDeck();
     }
 
-    static loadDeck(parameters:DeckParameter[]):DigimonTradingCardDeck {
+    static handleDeckQuery(request:HydrateRouteRequest):void {
+        if(request.search !== "")
+        {
+            let query = request.search.substring(1);
+            if(App.search.query !== query)
+            {
+                let deckParameters = App.parseDeckQueryString(query);
+                App.updateDeck("New Deck", deckParameters, this.cards);
+            }                
+        }
+    }
+
+    static updateDeck(name:string, parameters:DeckParameter[], cards:Map<string, EvaluatedDigimonTradingCard>) {
+        let deck = this.loadDeck(parameters, cards);
+        let deckParameters = this.generateDeckParameters(deck);
+        let query = this.writeDeckQueryString(deckParameters);
+        App.deck.parameters = deckParameters;
+        App.deck.name = name;
+        App.deck.list = deck;
+        return {
+                deck,
+                query,
+                parameters: deckParameters
+            };
+    }
+
+    static generateDeckParameters(deck:DigimonTradingCardDeck):DeckParameter[] {
+        return [
+            this.generateDeckPartParameter(deck.eggDeck),
+            this.generateDeckPartParameter(deck.mainDeck),
+            this.generateDeckPartParameter(deck.sideDeck)
+        ];
+    }
+
+    static generateDeckPartParameter(deckPart:DigimonTradingCardDeckPart):DeckParameter {
+        let cards = deckPart.activeCategories.flatMap(category => 
+            category.deckSpots.map(spot => `${spot.copies} ${spot.card.number}`)
+        );
+        return new DeckParameter(deckPart.deckType, cards.join("\n"));
+    }
+
+    static loadDeck(parameters:DeckParameter[], cards:Map<string, EvaluatedDigimonTradingCard>):DigimonTradingCardDeck {
         let deck = new DigimonTradingCardDeck();
         parameters.forEach(parameter => {
-            switch(parameter.deckPartType)
-            {
-                case "egg":
-                    deck.eggDeck.add(parameter.card, parameter.count);
-                    break;
-                case "main":
-                    deck.mainDeck.add(parameter.card, parameter.count);
-                    break;
-                case "side":
-                    deck.sideDeck.add(parameter.card, parameter.count);
-                    break;
-            }
+            parameter.text.split("\n").forEach(spot => {
+                let [count, cardNumber] = spot.trim().split(/\s+/);
+                let copies = Number.parseInt(count);
+                if(copies === NaN || cardNumber == null)
+                    return;
+                let card = cards.get(cardNumber);
+                if(card == null)
+                {
+                    card = new EvaluatedDigimonTradingCard();
+                    card.number = cardNumber;
+                }
+                switch(parameter.deckPartType)
+                {
+                    case "egg":
+                        deck.eggDeck.add(card, copies);
+                        break;
+                    case "main":
+                        deck.mainDeck.add(card, copies);
+                        break;
+                    case "side":
+                        deck.sideDeck.add(card, copies);
+                        break;
+                }
+            })
         });
         return deck;
+    }
+    
+    static writeDeckQueryString(deckParameters:DeckParameter[]):string {
+        return deckParameters.map(parameter => {
+            let cards:string[] = [];
+            parameter.text.split("\n").forEach(line => {
+                let [count, cardNumber] = line.trim().split(/\s+/);
+                let copies = Number.parseInt(count);
+                if(copies === NaN || cardNumber == null)
+                    return;
+                cards.push(`${cardNumber}:${copies}`);
+            });
+            return `${parameter.deckPartType}=${cards.join(",")}`;
+        })
+        .join("&");
+    }
+
+    static parseDeckQueryString(queryString:string):DeckParameter[] {
+        let deckParameters:DeckParameter[] = [];
+        if(queryString.startsWith("?"))
+            queryString = queryString.substring(1);
+        decodeURI(queryString).split("&").forEach(token => {
+            let [, deckPartType, parameterValue] = token.match(/([^=]+)=(.*)/);
+            let cards = parameterValue.split(",").map(card => {
+                let [cardNumber, count] = card.trim().split(":");
+                let copies = Number.parseInt(count);
+                if(copies === NaN)
+                    copies = 1;
+                if(cardNumber == null)
+                    cardNumber = "Unknown";
+                return `${copies} ${cardNumber}`;
+            });
+            let deckParameter = new DeckParameter(<DigimonTradingCardDeckPartType>deckPartType, cards.join("\n"));
+            deckParameters.push(deckParameter);
+        });
+        return deckParameters;
     }
 }

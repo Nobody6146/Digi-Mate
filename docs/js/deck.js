@@ -6,14 +6,15 @@ class DigimonTradingCardDeck {
         this.eggDeck = new DigimonTradingCardEggDeckPart();
         this.mainDeck = new DigimonTradingCardMainDeckPart();
         this.sideDeck = new DigimonTradingCardSideDeckPart();
-        this.mainDeck.add(App.cards.get("BT2-047"), 1);
-        this.mainDeck.add(App.cards.get("ST2-04"), 2);
-        this.mainDeck.add(App.cards.get("ST6-09"), 2);
-        this.eggDeck.add(App.cards.get("BT2-004"), 2);
+        //Test seeded data
+        // this.mainDeck.add(App.cards.get("BT2-047"), 1);
+        // this.mainDeck.add(App.cards.get("ST2-04"), 2);
+        // this.mainDeck.add(App.cards.get("ST6-09"), 2);
+        // this.eggDeck.add(App.cards.get("BT2-004"), 2);
         //This bad deck contents
-        this.mainDeck.add(App.cards.get("BT1-100"), 4);
-        this.mainDeck.add(App.cards.get("BT5-109"), 1);
-        this.eggDeck.add(App.cards.get("BT1-100"), 1);
+        // this.mainDeck.add(App.cards.get("BT1-100"), 4);
+        // this.mainDeck.add(App.cards.get("BT5-109"), 1);
+        // this.eggDeck.add(App.cards.get("BT1-100"), 1);
     }
     get cardCount() {
         return this.eggDeck.cardCount + this.mainDeck.cardCount + this.sideDeck.cardCount;
@@ -47,13 +48,15 @@ class DigimonTradingCardDeck {
     }
 }
 class DigimonTradingCardDeckPart {
+    deckType;
     name;
     allowedCardTypes;
     categories;
     minSize;
     maxSize;
     unknownCards;
-    constructor(name, minSize, maxSize, allowedCardTypes, categories) {
+    constructor(name, deckType, minSize, maxSize, allowedCardTypes, categories) {
+        this.deckType = deckType;
         this.name = name;
         this.minSize = minSize;
         this.maxSize = maxSize;
@@ -121,14 +124,14 @@ class DigimonTradingCardDeckPartCategory {
 }
 class DigimonTradingCardEggDeckPart extends DigimonTradingCardDeckPart {
     constructor() {
-        super("Egg", 0, 4, ["Digi-Egg"], [
+        super("Egg", "egg", 0, 4, ["Digi-Egg"], [
             new DigimonTradingCardDeckPartCategory("Level 2s", card => card.level == 2)
         ]);
     }
 }
 class DigimonTradingCardMainDeckPart extends DigimonTradingCardDeckPart {
     constructor() {
-        super("Main", 50, 50, ["Digimon", "Option", "Tamer"], [
+        super("Main", "main", 50, 50, ["Digimon", "Option", "Tamer"], [
             new DigimonTradingCardDeckPartCategory("Level 3s", card => card.level == 3),
             new DigimonTradingCardDeckPartCategory("Level 4s", card => card.level == 4),
             new DigimonTradingCardDeckPartCategory("Level 5s", card => card.level == 5),
@@ -141,7 +144,7 @@ class DigimonTradingCardMainDeckPart extends DigimonTradingCardDeckPart {
 }
 class DigimonTradingCardSideDeckPart extends DigimonTradingCardDeckPart {
     constructor() {
-        super("Side", 0, 10, ["Digi-Egg", "Digimon", "Option", "Tamer"], [
+        super("Side", "side", 0, 10, ["Digi-Egg", "Digimon", "Option", "Tamer"], [
             new DigimonTradingCardDeckPartCategory("Level 2", card => card.level == 2),
             new DigimonTradingCardDeckPartCategory("Level 3s", card => card.level == 3),
             new DigimonTradingCardDeckPartCategory("Level 4s", card => card.level == 4),

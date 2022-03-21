@@ -131,6 +131,14 @@
     </span>
 </template>
 
+<template h-template="DeckParameterTemplate">
+    <h4 h-model="_" h-property="name innerHTML">Name</h4>
+    <textarea h-model="_" h-property="text value" h-input="text value"
+        style="min-width: 400px; max-width: 33%; height: 300px; overflow: scroll;">
+
+    </textarea>
+</template>
+
 <nav>
     <a href="index.html#search">Search Cards</a>
     <a href="index.html#cheatsheet">Cheat Sheet</a>
@@ -213,11 +221,24 @@
     </table>
 </div>
 
+<div>
+    <h3>Deck Editors</h3>
+    <div h-model="deck" h-component="parameters DeckParameterTemplate"
+        style="display: flex; flex-wrap: wrap;">
+    </div>
+    <button onclick="updateDeck()">Update</button>
+</div>
+
 <script h-initialize>
     (event) => {
         window.toggleCard = function(element, toggle) {
-            console.log(element);
             element.querySelector(".tooltiptext").classList.toggle("visible", toggle);
+        }
+        window.updateDeck = function() {
+            let deck = App.hydrate.state(App.deck);
+            let results = App.updateDeck(deck.parameters);
+            App.hydrate.navigate(`?${encodeURI(results.query)}#deck`);
+            return results;
         }
     }
 </script>

@@ -162,17 +162,40 @@ class SelectSearchParameter extends SearchParameter {
 class AppDeck {
     name;
     list;
-    deckParameters;
+    parameters;
     constructor() {
         this.name = "New Deck";
         this.list = new DigimonTradingCardDeck();
-        this.deckParameters = [];
+        this.parameters = [
+            new DeckParameter("egg"),
+            new DeckParameter("main"),
+            new DeckParameter("side")
+        ];
     }
 }
 class DeckParameter {
-    card;
+    text;
     deckPartType;
-    count;
+    name;
+    constructor(type, text = "") {
+        this.deckPartType = type;
+        switch (this.deckPartType) {
+            case "egg":
+                this.name = "Egg Deck";
+                break;
+            case "main":
+                this.name = "Main Deck";
+                break;
+            case "side":
+                this.name = "Side Deck";
+                break;
+        }
+        this.text = text;
+    }
+}
+class DeckParameterCard {
+    cardNumber;
+    copies;
 }
 function logError(error) {
     console.error(error);
@@ -190,34 +213,27 @@ class App {
         this.#cards = new Map();
         await this.loadDatabase();
         this.initializeUi();
-        App.hydrate.route("", (req, res) => {
-            if (req.search !== "") {
-                let query = req.search.substring(1);
-                if (App.search.query !== query) {
-                    let searchParameters = App.parseQueryString(query);
-                    App.search.parameters.list = searchParameters;
-                    App.updateSearch(searchParameters);
-                }
-            }
-            res.continue();
-        });
         App.hydrate.route("#search", (req, res) => {
+            this.handleSearchQuery(req);
             res.resolve();
         });
         App.hydrate.route("#card", (req, res) => {
             res.resolve();
         });
         App.hydrate.route("#cards", (req, res) => {
+            this.handleSearchQuery(req);
             res.resolve();
         });
         App.hydrate.route("#cheatsheet", (req, res) => {
             res.resolve();
         });
         App.hydrate.route("#deck", (req, res) => {
+            this.handleDeckQuery(req);
             res.resolve();
         });
         App.hydrate.route("", (req, res) => {
             //Page not found
+            this.handleSearchQuery(req);
             res.hydrate.navigate("#search");
             res.resolve();
         });
@@ -270,8 +286,15 @@ class App {
     static resetSearchParameters() {
         this.search = new AppSearch();
     }
-    static resetDeckParameters() {
-        this.deck = new AppDeck();
+    static handleSearchQuery(request) {
+        if (request.search !== "") {
+            let query = request.search.substring(1);
+            if (App.search.query !== query) {
+                let searchParameters = App.parseSearchQueryString(query);
+                App.search.parameters.list = searchParameters;
+                App.updateSearch(searchParameters);
+            }
+        }
     }
     static updateSearch(searchParameters) {
         let queryResult = this.queryCardDatabase(searchParameters);
@@ -281,7 +304,7 @@ class App {
     }
     static queryCardDatabase(searchParameters) {
         searchParameters = searchParameters.filter(x => x.value !== "");
-        let query = this.#writeQueryString(searchParameters);
+        let query = this.#writeSearchQueryString(searchParameters);
         let filterExpression = this.#generateCardFilterExpression(searchParameters);
         let filter = new Function("card", `return ${filterExpression};`);
         let results = [...this.#cards.values()].filter(card => filter(card));
@@ -291,7 +314,7 @@ class App {
             results: results
         };
     }
-    static #writeQueryString(searchParameters) {
+    static #writeSearchQueryString(searchParameters) {
         let params = [];
         searchParameters.forEach(parameter => {
             if (parameter.value == "")
@@ -308,7 +331,7 @@ class App {
         });
         return params.join("&");
     }
-    static parseQueryString(queryString) {
+    static parseSearchQueryString(queryString) {
         let searchParameters = [];
         if (queryString.startsWith("?"))
             queryString = queryString.substring(1);
@@ -327,10 +350,10 @@ class App {
     }
     static #generateCardFilterExpression(searchParameters) {
         return searchParameters
-            .map(parameter => this.#writeParameterExpression(parameter))
+            .map(parameter => this.#writeSearchParameterExpression(parameter))
             .join("&&");
     }
-    static #writeParameterExpression(parameter) {
+    static #writeSearchParameterExpression(parameter) {
         let value = parameter.value;
         if (parameter.findFieldFunction == null) {
             let fieldName = `card.${Util.nameOfField(parameter.fieldFunction)}`;
@@ -363,28 +386,102 @@ class App {
                 return "";
         }
     }
-    static updateDeck(name, parameters) {
-        let deck = this.loadDeck(parameters);
-        App.deck.deckParameters = parameters;
+    static resetDeckParameters() {
+        this.deck = new AppDeck();
+    }
+    static handleDeckQuery(request) {
+        if (request.search !== "") {
+            let query = request.search.substring(1);
+            if (App.search.query !== query) {
+                let deckParameters = App.parseDeckQueryString(query);
+                App.updateDeck("New Deck", deckParameters, this.cards);
+            }
+        }
+    }
+    static updateDeck(name, parameters, cards) {
+        let deck = this.loadDeck(parameters, cards);
+        let deckParameters = this.generateDeckParameters(deck);
+        let query = this.writeDeckQueryString(deckParameters);
+        App.deck.parameters = deckParameters;
         App.deck.name = name;
         App.deck.list = deck;
-        return deck;
+        return {
+            deck,
+            query,
+            parameters: deckParameters
+        };
     }
-    static loadDeck(parameters) {
+    static generateDeckParameters(deck) {
+        return [
+            this.generateDeckPartParameter(deck.eggDeck),
+            this.generateDeckPartParameter(deck.mainDeck),
+            this.generateDeckPartParameter(deck.sideDeck)
+        ];
+    }
+    static generateDeckPartParameter(deckPart) {
+        let cards = deckPart.activeCategories.flatMap(category => category.deckSpots.map(spot => `${spot.copies} ${spot.card.number}`));
+        return new DeckParameter(deckPart.deckType, cards.join("\n"));
+    }
+    static loadDeck(parameters, cards) {
         let deck = new DigimonTradingCardDeck();
         parameters.forEach(parameter => {
-            switch (parameter.deckPartType) {
-                case "egg":
-                    deck.eggDeck.add(parameter.card, parameter.count);
-                    break;
-                case "main":
-                    deck.mainDeck.add(parameter.card, parameter.count);
-                    break;
-                case "side":
-                    deck.sideDeck.add(parameter.card, parameter.count);
-                    break;
-            }
+            parameter.text.split("\n").forEach(spot => {
+                let [count, cardNumber] = spot.trim().split(/\s+/);
+                let copies = Number.parseInt(count);
+                if (copies === NaN || cardNumber == null)
+                    return;
+                let card = cards.get(cardNumber);
+                if (card == null) {
+                    card = new EvaluatedDigimonTradingCard();
+                    card.number = cardNumber;
+                }
+                switch (parameter.deckPartType) {
+                    case "egg":
+                        deck.eggDeck.add(card, copies);
+                        break;
+                    case "main":
+                        deck.mainDeck.add(card, copies);
+                        break;
+                    case "side":
+                        deck.sideDeck.add(card, copies);
+                        break;
+                }
+            });
         });
         return deck;
+    }
+    static writeDeckQueryString(deckParameters) {
+        return deckParameters.map(parameter => {
+            let cards = [];
+            parameter.text.split("\n").forEach(line => {
+                let [count, cardNumber] = line.trim().split(/\s+/);
+                let copies = Number.parseInt(count);
+                if (copies === NaN || cardNumber == null)
+                    return;
+                cards.push(`${cardNumber}:${copies}`);
+            });
+            return `${parameter.deckPartType}=${cards.join(",")}`;
+        })
+            .join("&");
+    }
+    static parseDeckQueryString(queryString) {
+        let deckParameters = [];
+        if (queryString.startsWith("?"))
+            queryString = queryString.substring(1);
+        decodeURI(queryString).split("&").forEach(token => {
+            let [, deckPartType, parameterValue] = token.match(/([^=]+)=(.*)/);
+            let cards = parameterValue.split(",").map(card => {
+                let [cardNumber, count] = card.trim().split(":");
+                let copies = Number.parseInt(count);
+                if (copies === NaN)
+                    copies = 1;
+                if (cardNumber == null)
+                    cardNumber = "Unknown";
+                return `${copies} ${cardNumber}`;
+            });
+            let deckParameter = new DeckParameter(deckPartType, cards.join("\n"));
+            deckParameters.push(deckParameter);
+        });
+        return deckParameters;
     }
 }
