@@ -22,6 +22,10 @@ class DigimonTradingCardDeck {
         // this.eggDeck.add(App.cards.get("BT1-100"), 1);
     }
 
+    get digiScore():number {
+        return this.eggDeck.digiScore + this.mainDeck.digiScore + this.sideDeck.digiScore;
+    }
+
     get cardCount():number {
         return this.eggDeck.cardCount + this.mainDeck.cardCount + this.sideDeck.cardCount;
     }
@@ -80,6 +84,10 @@ class DigimonTradingCardDeckPart
             new DigimonTradingCardDeckPartCategory("Invalid", card => true)
         );
         this.unknownCards = [];
+    }
+
+    get digiScore():number {
+        return this.categories.reduce((total, category) => total + category.digiScore, 0);
     }
 
     get cardCount():number {
@@ -147,6 +155,10 @@ class DigimonTradingCardDeckPartCategory {
         this.deckSpots = [];
     }
     
+    get digiScore():number {
+        return this.deckSpots.reduce((sum, spot) => sum + spot.card.evaluation.digiScore, 0);
+    }
+
     get cardCount():number {
         return this.deckSpots.reduce((sum, spot) => sum + spot.copies, 0);
     } 
@@ -156,7 +168,7 @@ class DigimonTradingCardEggDeckPart extends DigimonTradingCardDeckPart
 {
     constructor()
     {
-        super("Egg", "egg", 0, 4, ["Digi-Egg"], [
+        super("Egg", "egg", 0, 5, ["Digi-Egg"], [
             new DigimonTradingCardDeckPartCategory("Level 2s", card => card.level == 2)
         ]);
     }
@@ -204,5 +216,9 @@ class DigimonTradingCardDeckSpot
     {
         this.card = card;
         this.copies = copies;
+    }
+
+    get digiScore():number {
+        return this.card.evaluation.digiScore * this.copies;
     }
 }
