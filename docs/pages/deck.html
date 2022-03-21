@@ -108,33 +108,28 @@
 <template h-template="DeckSpotTemplate">
     <div class="tooltip indent" style="display: flex;" h-model="_" h-component="deckSpots DeckSpotTemplate">
         <span style="margin-right: 10px;" h-model="_" h-property="copies innerHTML">0</span>
-        <span style="display: flex; justify-content: space-between;" h-model="_" h-component="card DeckSpotCardTemplate">
-        </span>
-    </div>
-</template>
-
-<template h-template="DeckSpotCardTemplate">
-    <span onclick="toggleCard(this)">
-        <span h-model="_" h-property="name innerHTML">Agumon</span>:&nbsp;
-        <span h-model="_" h-property="number innerHTML">BT2-104</span>
-        <span class="tooltiptext" style="bottom: 140px;">
-            <span style="display: flex; justify-content: center; align-items: center;">
-                
+        <span style="display: flex; justify-content: space-between;">
+        <span onclick="toggleCard(this)">
+            <span h-model="_.card" h-property="name innerHTML">Agumon</span>:&nbsp;
+            <span h-model="_.card" h-property="number innerHTML">BT2-104</span>
+            <span class="tooltiptext" style="bottom: 140px;">
+                <span style="display: flex; justify-content: center; align-items: center;">
+                    
+                </span>
+                <img style="width:200px;" h-model="_.card" h-attribute="imageUrl src">
+                <!-- <div class="blockout" onclick="toggleCard(this.parentElement.parentElement, false)"></div> -->
             </span>
-            <img style="width:200px;" h-model="_" h-attribute="imageUrl src">
-            <!-- <div class="blockout" onclick="toggleCard(this.parentElement.parentElement, false)"></div> -->
         </span>
-    </span>
     <span>
-        <span>Digi-Score: <span h-model="_.evaluation" h-property="digiScore innerHTML">0</span></span>
-        <span>Deck Score: <span h-model="_" h-property="digiScore innerHTML">0</span></span>
+        &emsp;<span>Digi-Score: <span h-model="_" h-property="copies innerHTML {{event.state.copies * event.state.card.evaluation.digiScore}}">0</span></span>
+        <!-- &emsp;<span>Deck Score: <span h-model="_" h-property="digiScore innerHTML">0</span></span> -->
     </span>
 </template>
 
 <template h-template="DeckParameterTemplate">
     <h4 h-model="_" h-property="name innerHTML">Name</h4>
     <textarea h-model="_" h-property="text value" h-input="text value"
-        style="min-width: 400px; max-width: 33%; height: 300px; overflow: scroll;">
+        style="min-width: 100px; max-width: 33%; height: 200px; overflow: scroll;" placeholder="e.g. 1 BT2-047 [NEW_LINE] 4 ST2-04">
 
     </textarea>
 </template>
@@ -145,13 +140,13 @@
 </nav>
 
 <div style="display: flex">
-        <h1>Deck Name</h1>
-    <div style="display: flex; align-items: center;">
+        <h1 h-model="deck" h-property="name innerHTML">Deck Name</h1>
+    <!-- <div style="display: flex; align-items: center;">
         <span>Digi-Score: 50000, Deck Score: 4090</span>
     </div>
     <div style="display: flex; align-items: center;">
         
-    </div>
+    </div> -->
 </div>
 
 <div>
@@ -164,7 +159,7 @@
 <div h-model="deck.list" h-component="mainDeck DeckPartTemplate"></div>
 <div h-model="deck.list" h-component="sideDeck DeckPartTemplate"></div>
 
-<div>
+<!-- <div>
     <h4>Deck Stats</h4>
     Max score per stat: 10
     <table>
@@ -219,7 +214,7 @@
             </tr>
         </tbody>
     </table>
-</div>
+</div> -->
 
 <div>
     <h3>Deck Editors</h3>
