@@ -264,6 +264,10 @@ class App
         await this.loadDatabase();
         this.initializeUi();
 
+        App.hydrate.route("", (req, res) => {
+            scrollTo(0,0);
+            res.continue();
+        });
         App.hydrate.route("#search", (req, res) => {
             this.handleSearchQuery(req);
             res.resolve();
@@ -475,13 +479,13 @@ class App
             if(App.search.query !== query)
             {
                 let deckParameters = App.parseDeckQueryString(query);
-                App.updateDeck("New Deck", deckParameters, this.cards);
+                App.updateDeck("New Deck", deckParameters);
             }                
         }
     }
 
-    static updateDeck(name:string, parameters:DeckParameter[], cards:Map<string, EvaluatedDigimonTradingCard>) {
-        let deck = this.loadDeck(parameters, cards);
+    static updateDeck(name:string, parameters:DeckParameter[]) {
+        let deck = this.loadDeck(parameters, this.cards);
         let deckParameters = this.generateDeckParameters(deck);
         let query = this.writeDeckQueryString(deckParameters);
         App.deck.parameters = deckParameters;

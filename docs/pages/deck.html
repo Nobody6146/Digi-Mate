@@ -150,7 +150,7 @@
         <span>Digi-Score: 50000, Deck Score: 4090</span>
     </div>
     <div style="display: flex; align-items: center;">
-        <button>Save</button>
+        
     </div>
 </div>
 
@@ -236,7 +236,7 @@
         }
         window.updateDeck = function() {
             let deck = App.hydrate.state(App.deck);
-            let results = App.updateDeck(deck.parameters);
+            let results = App.updateDeck(deck.name, deck.parameters);
             App.hydrate.navigate(`?${encodeURI(results.query)}#deck`);
             return results;
         }
