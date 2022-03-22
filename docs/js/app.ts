@@ -486,6 +486,7 @@ class App
 
     static updateDeck(name:string, parameters:DeckParameter[]) {
         let deck = this.loadDeck(parameters, this.cards);
+        deck = DigimonTradingCardDeckEvaluator.evaluateDeck(deck);
         let deckParameters = this.generateDeckParameters(deck);
         let query = this.writeDeckQueryString(deckParameters);
         App.deck.parameters = deckParameters;
@@ -521,7 +522,7 @@ class App
                 let copies = Number.parseInt(count);
                 if(copies === NaN || cardNumber == null)
                     return;
-                let card = cards.get(cardNumber);
+                let card = cards.get(cardNumber.toUpperCase());
                 if(card == null)
                 {
                     card = new EvaluatedDigimonTradingCard();

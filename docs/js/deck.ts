@@ -3,11 +3,13 @@ class DigimonTradingCardDeck {
     eggDeck:DigimonTradingCardEggDeckPart;
     mainDeck:DigimonTradingCardMainDeckPart;
     sideDeck:DigimonTradingCardSideDeckPart;
+    stats:DigimonTradingCardDecksStats;
 
     constructor() {
         this.eggDeck = new DigimonTradingCardEggDeckPart();
         this.mainDeck = new DigimonTradingCardMainDeckPart();
         this.sideDeck = new DigimonTradingCardSideDeckPart();
+        this.stats = new DigimonTradingCardDecksStats();
 
         //Test seeded data
         // this.mainDeck.add(App.cards.get("BT2-047"), 1);
@@ -24,6 +26,10 @@ class DigimonTradingCardDeck {
 
     get digiScore():number {
         return this.eggDeck.digiScore + this.mainDeck.digiScore + this.sideDeck.digiScore;
+    }
+
+    get deckScore():number {
+        return this.eggDeck.deckScore + this.mainDeck.deckScore + this.sideDeck.deckScore;
     }
 
     get cardCount():number {
@@ -81,7 +87,7 @@ class DigimonTradingCardDeckPart
         this.maxSize = maxSize;
         this.allowedCardTypes = allowedCardTypes;
         this.categories = categories.concat(
-            new DigimonTradingCardDeckPartCategory("Invalid", card => true)
+            new DigimonTradingCardDeckPartCategory("Invalid", null)
         );
         this.unknownCards = [];
     }
@@ -90,8 +96,16 @@ class DigimonTradingCardDeckPart
         return this.categories.reduce((total, category) => total + category.digiScore, 0);
     }
 
+    get deckScore():number {
+        return this.categories.reduce((total, category) => total + category.deckScore, 0);
+    }
+
     get cardCount():number {
         return this.categories.reduce((total, category) => total + category.cardCount, 0);
+    }
+
+    get cards():EvaluatedDigimonTradingCard[] {
+        return this.categories.flatMap(category => category.cards);
     }
 
     get errors():string[] {
@@ -127,7 +141,7 @@ class DigimonTradingCardDeckPart
     add(card:EvaluatedDigimonTradingCard, copies:number = 1):DigimonTradingCardDeckSpot {
         for(let category of this.categories)
         {
-            if(!category.criteria(card))
+            if(category.criteria == null || !category.criteria(card))
                 continue;
             let spot = category.deckSpots.find(x => x.card.number === card.number);
             if(spot == null)
@@ -148,15 +162,30 @@ class DigimonTradingCardDeckPartCategory {
     name:string;
     criteria:DigimonTradingCardDeckPartCategoryCriteria;
     deckSpots:DigimonTradingCardDeckSpot[];
+    cardStats:DigimonTradingCardStats;
 
     constructor(name:string, criteria:DigimonTradingCardDeckPartCategoryCriteria) {
         this.name = name;
         this.criteria = criteria;
         this.deckSpots = [];
+        this.cardStats = null;
     }
     
     get digiScore():number {
-        return this.deckSpots.reduce((sum, spot) => sum + spot.card.evaluation.digiScore, 0);
+        return this.deckSpots.reduce((sum, spot) => sum + spot.digiScore, 0);
+    }
+
+    get deckScore():number {
+        return this.deckSpots.reduce((sum, spot) => sum + spot.deckScore, 0);
+    }
+
+    get cards():EvaluatedDigimonTradingCard[] {
+        let cards:EvaluatedDigimonTradingCard[] = [];
+        this.deckSpots.forEach(spot => {
+            for(let i = 0; i < spot.copies; i++)
+                cards.push(spot.card);
+        });
+        return cards;
     }
 
     get cardCount():number {
@@ -211,14 +240,75 @@ class DigimonTradingCardDeckSpot
 {
     card:EvaluatedDigimonTradingCard;
     copies:number;
+    evaluation:DigimonTradingCardEvaluation;
 
     constructor(card:EvaluatedDigimonTradingCard, copies:number = 0)
     {
         this.card = card;
         this.copies = copies;
+        this.evaluation = null;
     }
 
     get digiScore():number {
         return this.card.evaluation.digiScore * this.copies;
+    }
+
+    get deckScore():number {
+        return this.evaluation.digiScore * this.copies;
+    }
+}
+
+class DigimonTradingCardDecksStats extends DigimonTradingCardStats {
+    deckScore:DigimonStatRange;
+
+    constructor() {
+        super();
+        this.deckScore = new DigimonStatRange();
+    }
+
+    updateDeckScore(score:number): void {
+        this.deckScore.update(score);
+    }
+}
+
+class DigimonTradingCardDeckEvaluator {
+    static evaluateDeck(deck:DigimonTradingCardDeck) {
+        deck.eggDeck.activeCategories
+        .concat(deck.mainDeck.activeCategories)
+        .concat(deck.sideDeck.activeCategories)
+        .forEach(category => {
+            if(category.criteria == null)
+            {
+                category.cardStats = App.hydrate.state(App.cardDatabase.cardStats);
+            }
+            else
+            {
+                category.cardStats = new DigimonTradingCardStats();
+                [...App.cards.values()].forEach(card => {
+                    if(!category.criteria(card))
+                        return;
+                    category.cardStats.update(card);
+                });
+            }
+            
+            category.deckSpots.forEach(spot => {
+                spot.evaluation = DigimonTradingCardEvaluator.evaluateCard(spot.card, category.cardStats);
+            });
+        });
+
+        deck.stats = new DigimonTradingCardDecksStats();
+        deck.eggDeck.activeCategories
+            .concat(deck.mainDeck.activeCategories)
+            .concat(deck.sideDeck.activeCategories)
+            .forEach(category => {
+                category.deckSpots.forEach(spot => {
+                    for(let i = 0; i < spot.copies; i++) {
+                        deck.stats.update(spot.card);
+                        deck.stats.digiScore.update(spot.card.evaluation.digiScore);
+                        deck.stats.updateDeckScore(spot.evaluation.digiScore);
+                    }
+                });
+            });
+        return deck;
     }
 }

@@ -7,7 +7,7 @@
 
     .tooltiptext {
         visibility: hidden;
-        background-color: rgba(158, 158, 158, 128);
+        background-color: rgba(158, 158, 158, 1);
         /* color: #fff; */
         text-align: center;
         border-radius: 6px;
@@ -17,6 +17,13 @@
         position: absolute;
         top: -140px;
         z-index: 1;
+        color:white;
+        width: fit-content;
+        height: fit-content;
+    }
+
+    .tooltip td {
+        color: white;
     }
 
     @media(hover: hover) and (pointer: fine)
@@ -36,7 +43,6 @@
             left: 0;
             width: 100vw; 
             height: 100vh; 
-            background-color: rgba(158, 158, 158, .5);
         }
 
         .visible img {
@@ -52,7 +58,6 @@
         visibility: visible;
         position: fixed;
         margin: auto;
-        background-color: aqua;
     }
 
     .indent {
@@ -98,10 +103,13 @@
 
 <template h-template="DeckPartCategoryTemplate">
     <fieldset class="indent">
-        <legend>
+        <legend class="tooltip" onclick="toggleCard(this)">
             <h4>
                 <span h-model="_" h-property="name innerHTML">Level 2</span>
                 &emsp;(&nbsp;<span h-model="_" h-property="cardCount innerHTML">0</span>&nbsp;)
+                <span class="tooltiptext" style="bottom: 140px; display: flex; justify-content: center;">
+                    <span h-model="_" h-component="cardStats StatsTemplate"></span>
+                </span>
             </h4>
         </legend>
         <div h-model="_" h-component="deckSpots DeckSpotTemplate"></div>    
@@ -116,7 +124,8 @@
 
         </span>
     <span>
-        &emsp;<span>Digi-Score: <span h-model="_" h-property="digiScore innerHTML">0</span></span>
+        &emsp;<span>Digi-Score: <span h-model="_.card.evaluation" h-property="digiScore innerHTML">0</span></span>
+        &emsp;<span>Deck Score: <span h-model="_.evaluation" h-property="digiScore innerHTML">0</span></span>
         <!-- &emsp;<span>Deck Score: <span h-model="_" h-property="digiScore innerHTML">0</span></span> -->
     </span>
 </template>
@@ -125,7 +134,7 @@
     <span onclick="toggleCard(this)">
         <span h-model="_" h-property="name innerHTML">Agumon</span>:&nbsp;
         <span h-model="_" h-property="number innerHTML">BT2-104</span>
-        <span class="tooltiptext" style="bottom: 140px;">
+        <span class="tooltiptext" style="bottom: 140px; background-color: rgba(158, 158, 158, .5);">
             <span style="display: flex; justify-content: center; align-items: center;">
                 
             </span>
@@ -143,6 +152,67 @@
     </textarea>
 </template>
 
+<template h-template="StatsTemplate">
+    <table>
+        <tbody>
+            <tr>
+                <td>Digi-Score</td>   
+                <td>
+                    <div h-model="_" h-component="digiScore StatDisplayTemplate"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Deck Score</td>   
+                <td>
+                    <div h-model="_" h-component="deckScore StatDisplayTemplate"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Play Cost</td>   
+                <td>
+                    <div h-model="_" h-component="playCost StatDisplayTemplate"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Evolution Cost</td>   
+                <td>
+                    <div h-model="_" h-component="evolutionCost StatDisplayTemplate"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Average Memory Cost (Play/Evolution)</td>   
+                <td>
+                    <div h-model="_" h-component="averageMemory StatDisplayTemplate"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>DP</td>   
+                <td>
+                    <div h-model="_" h-component="dp StatDisplayTemplate"></div>
+                </td>
+            </tr>
+            <tr>
+                <td># of Effects</td>   
+                <td>
+                    <div h-model="_" h-component="numberOfEffects StatDisplayTemplate"></div>
+                </td>
+            </tr>
+            <tr>
+                <td># of Abilities</td>   
+                <td>
+                    <div h-model="_" h-component="numberOfAbilities StatDisplayTemplate"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>Digimon Level</td>   
+                <td>
+                    <div h-model="_" h-component="levels StatDisplayTemplate"></div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</template>
+
 <nav>
     <a href="index.html#search">Search Cards</a>
     <a href="index.html#cheatsheet">Cheat Sheet</a>
@@ -152,7 +222,7 @@
         <h1 h-model="deck" h-property="name innerHTML">Deck Name</h1>
     <div style="display: flex; align-items: center;">
         &emsp;<span>Digi-Score: <span h-model="deck.list" h-property="digiScore innerHTML">0</span>
-        , Deck Score: 0</span>
+        &emsp;<span>Deck Score: <span h-model="deck.list" h-property="deckScore innerHTML">0</span>
     </div>
     <div style="display: flex; align-items: center;">
         
@@ -169,62 +239,10 @@
 <div h-model="deck.list" h-component="mainDeck DeckPartTemplate"></div>
 <div h-model="deck.list" h-component="sideDeck DeckPartTemplate"></div>
 
-<!-- <div>
+<div>
     <h4>Deck Stats</h4>
-    Max score per stat: 10
-    <table>
-        <tbody>
-            <tr>
-                <td>Digi-Score</td>   
-                <td>
-                    <div h-model="cardDatabase.cardStats" h-component="digiScore StatDisplayTemplate"></div>
-                </td>
-            </tr>
-            <tr>
-                <td>Play Cost</td>   
-                <td>
-                    <div h-model="cardDatabase.cardStats" h-component="playCost StatDisplayTemplate"></div>
-                </td>
-            </tr>
-            <tr>
-                <td>Evolution Cost</td>   
-                <td>
-                    <div h-model="cardDatabase.cardStats" h-component="evolutionCost StatDisplayTemplate"></div>
-                </td>
-            </tr>
-            <tr>
-                <td>Average Memory Cost (Play/Evolution)</td>   
-                <td>
-                    <div h-model="cardDatabase.cardStats" h-component="averageMemory StatDisplayTemplate"></div>
-                </td>
-            </tr>
-            <tr>
-                <td>DP</td>   
-                <td>
-                    <div h-model="cardDatabase.cardStats" h-component="dp StatDisplayTemplate"></div>
-                </td>
-            </tr>
-            <tr>
-                <td># of Effects</td>   
-                <td>
-                    <div h-model="cardDatabase.cardStats" h-component="numberOfEffects StatDisplayTemplate"></div>
-                </td>
-            </tr>
-            <tr>
-                <td># of Abilities</td>   
-                <td>
-                    <div h-model="cardDatabase.cardStats" h-component="numberOfAbilities StatDisplayTemplate"></div>
-                </td>
-            </tr>
-            <tr>
-                <td>Digimon Level</td>   
-                <td>
-                    <div h-model="cardDatabase.cardStats" h-component="levels StatDisplayTemplate"></div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div> -->
+    <div h-model="deck.list" h-component="stats StatsTemplate"></div>
+</div>
 
 <div>
     <h3>Deck Editors</h3>

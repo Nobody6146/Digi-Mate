@@ -36,6 +36,22 @@ class DigimonTradingCardStats {
         this.averageMemory = new DigimonStatRange();
         this.digiScore = new DigimonStatRange();
     }
+    update(cards) {
+        if (!Array.isArray(cards))
+            cards = [cards];
+        cards.forEach(card => {
+            this.playCost.update(card.playCost);
+            this.levels.update(card.level);
+            this.evolutionCost.update(card.evolutionCost);
+            this.dp.update(card.dp);
+            this.rarityValue.update(card.rarityValue);
+            this.numberOfAbilities.update(card.abilities.length);
+            this.numberOfEffects.update(card.effects.length);
+            this.averageMemory.update(card.playCost);
+            this.averageMemory.update(card.evolutionCost);
+            // this.digiScore.update(card.ev)
+        });
+    }
 }
 class DigimonTradingCardEvaluation {
     playCost = 0;
@@ -164,15 +180,7 @@ class DigimonTradingCardEvaluator {
                 cardEnums.legalities.push(card.legality);
             if (cardEnums.copiesAllowed.find(x => x === card.copiesAllowed) === undefined)
                 cardEnums.copiesAllowed.push(card.copiesAllowed);
-            cardStats.playCost.update(card.playCost);
-            cardStats.levels.update(card.level);
-            cardStats.evolutionCost.update(card.evolutionCost);
-            cardStats.dp.update(card.dp);
-            cardStats.rarityValue.update(card.rarityValue);
-            cardStats.numberOfAbilities.update(card.abilities.length);
-            cardStats.numberOfEffects.update(card.effects.length);
-            cardStats.averageMemory.update(card.playCost);
-            cardStats.averageMemory.update(card.evolutionCost);
+            cardStats.update(card);
         });
         cardEnums.types = cardEnums.types.sort();
         cardEnums.colors = cardEnums.colors.sort();
@@ -186,10 +194,12 @@ class DigimonTradingCardEvaluator {
         cardEnums.setNames = cardEnums.sets.map(x => x.name).sort();
         cardEnums.setNumbers = cardEnums.sets.map(x => x.number);
         let evaluatedCards = cards.map(card => {
-            return {
+            let result = {
                 ...card,
-                evaluation: this.#evaluateCard(card, cardStats)
+                evaluation: this.evaluateCard(card, cardStats)
             };
+            cardStats.digiScore.update(result.evaluation.digiScore);
+            return result;
         });
         return {
             cardEnums,
@@ -197,7 +207,7 @@ class DigimonTradingCardEvaluator {
             evaluatedCards
         };
     }
-    static #evaluateCard(card, cardStats) {
+    static evaluateCard(card, cardStats) {
         let evaluation = new DigimonTradingCardEvaluation();
         evaluation.playCost = this.#evaluateStat(card.playCost, cardStats.playCost.max, cardStats.playCost.min);
         evaluation.level = this.#evaluateStat(card.level, cardStats.levels.min, cardStats.levels.max);
@@ -215,13 +225,14 @@ class DigimonTradingCardEvaluator {
             + evaluation.numberOfAbilities
             + evaluation.numberOfEffects
             + evaluation.cardType);
-        cardStats.digiScore.update(evaluation.digiScore);
         return evaluation;
     }
     static #evaluateStat(value, min, max) {
         if (value == null)
             return 0;
         let weight = max - min;
+        if (weight == 0)
+            weight = 1;
         return (1 - (max - value) / weight) * 10;
     }
 }
