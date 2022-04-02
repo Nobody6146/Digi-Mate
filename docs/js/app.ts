@@ -14,6 +14,7 @@ class HydrateModelKeys
     static cardDatabase = "cardDatabase";
     static search = "search";
     static deck = "deck";
+    static cardDetail = "cardDetail";
 }
 
 class AppCardDatabase {
@@ -243,6 +244,12 @@ class DeckParameterCard {
     copies:number;
 }
 
+class AppCardDetail {
+    setNumber:string;
+    cardNumber:string;
+    card:EvaluatedDigimonTradingCard;
+}
+
 function logError(error:Error):void {
     console.error(error);
     alert(error.message);
@@ -264,6 +271,12 @@ class App
         await this.loadDatabase();
         this.initializeUi();
 
+        this.#addRoutes();
+
+        App.hydrate.navigate();
+    }
+
+    static #addRoutes():void {
         App.hydrate.route("", (req, res) => {
             scrollTo(0,0);
             res.continue();
@@ -272,7 +285,8 @@ class App
             this.handleSearchQuery(req);
             res.resolve();
         });
-        App.hydrate.route("#card", (req, res) => {
+        App.hydrate.route("#card/:setNumber/:cardNumber", (req, res) => {
+            this.handleCardDetailQuery(req);
             res.resolve();
         });
         App.hydrate.route("#cards", (req, res) => {
@@ -280,6 +294,10 @@ class App
             res.resolve();
         });
         App.hydrate.route("#cheatsheet", (req, res) => {
+            res.resolve();
+        });
+        App.hydrate.route("#deck/visual", (req, res) => {
+            this.handleDeckQuery(req);
             res.resolve();
         });
         App.hydrate.route("#deck", (req, res) => {
@@ -291,9 +309,7 @@ class App
             this.handleSearchQuery(req);
             res.hydrate.navigate("#search");
             res.resolve();
-        });
-
-        App.hydrate.navigate();
+        });        
     }
 
     static initializeUi():void {
@@ -346,6 +362,13 @@ class App
     }
     static set deck(deck:AppDeck) {
         this.#hydrate.bind(HydrateModelKeys.deck, deck);
+    }
+
+    static get cardDetail():AppCardDetail {
+        return this.#hydrate.model(HydrateModelKeys.cardDetail);
+    }
+    static set cardDetail(detail:AppCardDetail) {
+        this.#hydrate.bind(HydrateModelKeys.cardDetail, detail);
     }
 
     static resetSearchParameters():void {
@@ -579,5 +602,25 @@ class App
             deckParameters.push(deckParameter);
         });
         return deckParameters;
+    }
+
+    static handleCardDetailQuery(request:HydrateRouteRequest):void {
+        let cardNumber = <string>request.params.cardNumber?.toUpperCase();
+        let setNumber = <string>request.params.setNumber?.toUpperCase();
+        this.updateViewCardDetail(setNumber, cardNumber);
+    }
+
+    static updateViewCardDetail(setNumber:string, cardNumber:string):AppCardDetail {
+        let cards = App.cardDatabase.cards;
+        cards = App.hydrate.state(App.cardDatabase.cards);
+        //TODO: in the future, maybe be able to show specific card art from the set
+        let card = cards.find(x => setNumber && x.number === cardNumber);// && x.set.number === setNumber);
+        
+        let cardDetail = new AppCardDetail();
+        cardDetail.cardNumber = cardNumber;
+        cardDetail.setNumber = setNumber;
+        cardDetail.card = card;
+        App.cardDetail = cardDetail;
+        return cardDetail;
     }
 }

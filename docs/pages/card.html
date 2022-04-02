@@ -1,5 +1,163 @@
+<style>
+    .indent {
+        margin-left: 1em;
+    }
+    li {
+        list-style: none;
+    }
+</style>
+
+<template h-template="CardTemplate">
+    <div>
+        <b style="font-size: larger;">
+            <span h-model="_" h-property="name innerHTML"></span>
+        </b>
+        <span style="padding-left: 5px;">
+            (<span h-model="_.set" h-property="number innerHTML"></span>)
+        </span>
+    </div>
+    <div>
+        <span style="padding: 5px;" h-model="_" h-property="number innerHTML"></span>
+        <span style="padding: 5px;" h-model="_" h-property="rarity innerHTML"></span>
+        <span style="padding: 5px;" h-model="_" h-property="type innerHTML"></span>
+        <span style="padding: 5px;" h-model="_" h-property="level innerHTML {{`Lv.${event.prop}`}}"></span>
+    </div>
+    <div>
+        <div class="clearfix">
+            <img style="float: left; width:200px;" h-model="_" h-attribute="imageUrl src">
+
+            <b style="padding: 5px;">Color</b>
+            <br/>
+            <span style="padding: 5px; margin-left: 1em;" h-model="_" h-property="color innerHTML">N/A</span>
+
+            <br/>            
+            <b style="padding: 5px;">Form</b>
+            <br/>
+            <span style="padding: 5px; margin-left: 1em;" h-model="_" h-property="form innerHTML">N/A</span>
+
+            <br/>
+            <b style="padding: 5px;">Attribute</b>
+            <br/>
+            <span style="padding: 5px; margin-left: 1em;" h-model="_" h-property="attribute innerHTML">N/A</span>
+
+            <br/>
+            <b style="padding: 5px;">Digimon Type</b>
+            <br/>
+            <span style="padding: 5px; margin-left: 1em;" h-model="_" h-property="digimonType innerHTML">N/A</span>
+
+            <br/>
+            <b style="padding: 5px;">Original Printing</b>
+            <br/>
+            <span style="padding: 5px; margin-left: 1em;" h-model="_.set" h-property="name innerHTML">N/A</span>
+
+            <br/>
+            <b style="padding: 5px;">Artist</b>
+            <br/>
+            <span style="padding: 5px; margin-left: 1em;" h-model="_" h-property="artist innerHTML">N/A</span>
+
+            <br/>
+            <b style="padding: 5px;">All Printings</b>
+            <br/>
+            <span h-model="_" h-component="printings CardPrintingsTemplate"></span>
+
+            <b style="padding: 5px;">Primary Text</b>
+            <br/>
+            <span style="padding: 5px; margin-left: 1em;" h-model="_" h-property="primaryText innerHTML">N/A</span>
+
+            <br/>
+            <b style="padding: 5px;">Secondary Text</b>
+            <br/>
+            <span style="padding: 5px; margin-left: 1em;" h-model="_" h-property="secondaryText innerHTML">N/A</span>
+    </div>
+    <div>
+        <br/>
+        <h4>Evaluation</h4>
+        <div h-model="_" h-component="evaluation EvaluationTemplate"></div>
+    </div>
+</template>
+
+<template h-template="CardPrintingsTemplate">
+        <span style="padding: 5px; margin-left: 1em" h-model="_" h-property="name innerHTML"></span>
+        &nbsp;(<span h-model="_" h-property="number innerHTML"></span>)
+        <br/>
+</template>
+
+<template h-template="EvaluationTemplate">
+    <table>
+        <tbody>
+            <tr>
+                <td>Digi-Score</td>   
+                <td>
+                    <div h-model="_" h-property="digiScore innerHTML">N/A</div>
+                </td>
+            </tr>
+            <tr>
+                <td>Play Cost</td>   
+                <td>
+                    <div h-model="_" h-property="playCost innerHTML">N/A</div>
+                </td>
+            </tr>
+            <tr>
+                <td>Evolution Cost</td>   
+                <td>
+                    <div h-model="_" h-property="evolutionCost innerHTML">N/A</div>
+                </td>
+            </tr>
+            <tr>
+                <td>Average Memory Cost (Play/Evolution)</td>   
+                <td>
+                    <div h-model="_" h-property="averageMemory innerHTML">N/A</div>
+                </td>
+            </tr>
+            <tr>
+                <td>DP</td>   
+                <td>
+                    <div h-model="_" h-property="dp innerHTML">N/A</div>
+                </td>
+            </tr>
+            <tr>
+                <td># of Effects</td>   
+                <td>
+                    <div h-model="_" h-property="numberOfEffects innerHTML">N/A</div>
+                </td>
+            </tr>
+            <tr>
+                <td># of Abilities</td>   
+                <td>
+                    <div h-model="_" h-property="numberOfAbilities innerHTML">N/A</div>
+                </td>
+            </tr>
+            <tr>
+                <td>Digimon Level</td>   
+                <td>
+                    <div h-model="_" h-property="levels innerHTML">N/A</div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</template>
+
+<template h-template="StatDisplayTemplate">
+    <div style="display: flex; justify-content: space-between;">
+        <div style="padding:4px;">
+            Min: <span h-model="_" h-property="min innerHTML"></span>
+        </div>
+        <div style="padding:4px;">
+            Max: <span h-model="_" h-property="max innerHTML"></span>
+        </div>
+        <div style="padding:4px;">
+            Average: <span h-model="_" h-property="average innerHTML {{event.prop?.toFixed(2)}}"></span>
+        </div>
+    </div>
+</template>
+
 <nav>
     <a href="#cards">Back to Results</a>
     <a href="#search">Back to Search</a>
     <a href="index.html#deck">Create Deck</a>
 </nav>
+
+<br />
+
+<div h-model="cardDetail" h-component="card CardTemplate"></div>
+<br />

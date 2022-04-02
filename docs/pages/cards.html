@@ -3,17 +3,19 @@
 </template>
 
 <template h-template="CardSearchResultTemplate">
-    <div class="search-result-card">
-        <img h-model="_" h-property="imageUrl src" />
-        <p>
-            <span h-model="_" h-property="name innerText"></span>
-            : <span h-model="_" h-property="number innerText"></span>
-        </p>
-        <p>
-            (<span h-model="_" h-property="number innerText GetSortFieldNameScript"></span>
-            : <span h-model="_" h-property="number innerText GetSortFieldCardValueScript"></span>)
-        </p>
-    </div>
+    <a h-model="_" h-attribute="number href {{`#card/${event.state.set.number}/${event.state.number}`}}">
+        <div class="search-result-card">
+            <img h-model="_" h-property="imageUrl src" />
+            <p>
+                <span h-model="_" h-property="name innerText"></span>
+                : <span h-model="_" h-property="number innerText"></span>
+            </p>
+            <p>
+                (<span h-model="_" h-property="number innerText GetSortFieldNameScript"></span>
+                : <span h-model="_" h-property="number innerText GetSortFieldCardValueScript"></span>)
+            </p>
+        </div>
+    </a>
 </template>
 
 <script h-script="GetSortFieldNameScript">

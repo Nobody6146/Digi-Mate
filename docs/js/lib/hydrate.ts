@@ -223,7 +223,7 @@ class HydrateRouteRequest {
     search: string;
     query: object;
     hash: string;
-    params: object;
+    params: any;
     state;
 }
 

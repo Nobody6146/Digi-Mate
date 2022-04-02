@@ -138,6 +138,10 @@ class DigimonTradingCardDeckPart
         return this.categories.filter(category => category.cardCount > 0);
     }
 
+    get deckSpots() {
+        return this.activeCategories.flatMap(x => x.deckSpots);
+    }
+
     add(card:EvaluatedDigimonTradingCard, copies:number = 1):DigimonTradingCardDeckSpot {
         for(let category of this.categories)
         {

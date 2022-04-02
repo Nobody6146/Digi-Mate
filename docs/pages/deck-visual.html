@@ -1,0 +1,59 @@
+<style>
+ 
+</style>
+
+<template h-template="DeckPartTemplate">
+    <fieldset>
+        <legend>
+            <h4>
+                <span h-model="_" h-property="name innerHTML">Deck Name</span>
+            </h4>
+        </legend>
+        <div h-model="_" h-component="deckSpots DeckSpotTemplate"
+            style="width: 100%; display: flex; flex-wrap: wrap; justify-content: space-evenly;">
+        </div>
+    </fieldset>
+</template>
+
+<template h-template="DeckSpotTemplate">
+    <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px;">
+        <div h-model="_" h-component="card DeckSpotCardTemplate"></div>
+        <div>
+            x<span style="margin-right: 10px;" h-model="_" h-property="copies innerHTML">0</span>
+    </div>
+    </div>
+    
+</template>
+
+<template h-template="DeckSpotCardTemplate">
+    <a h-model="_" h-attribute="number href {{`#card/${event.state.set.number}/${event.state.number}`}}">
+        <div style="text-align: center;">
+            <img style="width:200px;" h-model="_" h-attribute="imageUrl src">
+        </div>
+        <div style="text-align: center;">
+            <b>
+                <span h-model="_" h-property="name innerHTML">Agumon</span>:&nbsp;
+                <span h-model="_" h-property="number innerHTML">BT2-104</span>
+            </b>
+        </div>
+    </a>
+</template>
+
+<nav>
+    <a href="index.html#search">Search Cards</a>
+    <a href="index.html#cheatsheet">Cheat Sheet</a>
+    <a href="index.html#deck">Create Deck</a>
+    <a href="#deck">Edit Deck</a>
+</nav>
+
+<div style="display: flex">
+        <h1 h-model="deck" h-property="name innerHTML">Deck Name</h1>
+    <div style="display: flex; align-items: center;">
+        &emsp;<span>Digi-Score: <span h-model="deck.list" h-property="digiScore innerHTML">0</span>
+        &emsp;<span>Deck Score: <span h-model="deck.list" h-property="deckScore innerHTML">0</span>
+    </div>
+</div>
+
+<div h-model="deck.list" h-component="eggDeck DeckPartTemplate"></div>
+<div h-model="deck.list" h-component="mainDeck DeckPartTemplate"></div>
+<div h-model="deck.list" h-component="sideDeck DeckPartTemplate"></div>
